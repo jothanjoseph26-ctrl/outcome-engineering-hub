@@ -11,6 +11,16 @@ import WhatsAppLeadQualification from "./pages/WhatsAppLeadQualification";
 import WhatsAppCRMIntegration from "./pages/WhatsAppCRMIntegration";
 import WhatsAppBroadcast from "./pages/WhatsAppBroadcast";
 import WhatsAppAnalytics from "./pages/WhatsAppAnalytics";
+import ProgrammaticApiControl from "./pages/ProgrammaticApiControl";
+import ProgrammaticAutomationScripts from "./pages/ProgrammaticAutomationScripts";
+import ProgrammaticPredictiveBidding from "./pages/ProgrammaticPredictiveBidding";
+import ProgrammaticDynamicCreative from "./pages/ProgrammaticDynamicCreative";
+import EdgeInfrastructureOverview from "./pages/EdgeInfrastructureOverview";
+import EdgeInfrastructureDetail from "./pages/EdgeInfrastructureDetail";
+import ServerSideTrackingOverview from "./pages/ServerSideTrackingOverview";
+import ServerSideTrackingDetail from "./pages/ServerSideTrackingDetail";
+import DataSovereigntyOverview from "./pages/DataSovereigntyOverview";
+import DataSovereigntyDetail from "./pages/DataSovereigntyDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +40,46 @@ const App = () => (
           <Route path="/whatsapp/crm-integration" element={<WhatsAppCRMIntegration />} />
           <Route path="/whatsapp/broadcast" element={<WhatsAppBroadcast />} />
           <Route path="/whatsapp/analytics" element={<WhatsAppAnalytics />} />
+          <Route
+            path="/solutions/programmatic-advertising/api-control"
+            element={<ProgrammaticApiControl />}
+          />
+          <Route
+            path="/solutions/programmatic-advertising/automation-scripts"
+            element={<ProgrammaticAutomationScripts />}
+          />
+          <Route
+            path="/solutions/programmatic-advertising/predictive-bidding"
+            element={<ProgrammaticPredictiveBidding />}
+          />
+          <Route
+            path="/solutions/programmatic-advertising/dynamic-creative"
+            element={<ProgrammaticDynamicCreative />}
+          />
+          <Route
+            path="/solutions/edge-seo-infrastructure"
+            element={<EdgeInfrastructureOverview />}
+          />
+          <Route
+            path="/solutions/edge-seo-infrastructure/:slug"
+            element={<EdgeInfrastructureDetail />}
+          />
+          <Route
+            path="/solutions/server-side-tracking"
+            element={<ServerSideTrackingOverview />}
+          />
+          <Route
+            path="/solutions/server-side-tracking/:slug"
+            element={<ServerSideTrackingDetail />}
+          />
+          <Route
+            path="/solutions/data-sovereignty"
+            element={<DataSovereigntyOverview />}
+          />
+          <Route
+            path="/solutions/data-sovereignty/:slug"
+            element={<DataSovereigntyDetail />}
+          />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

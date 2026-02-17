@@ -47,14 +47,14 @@ const systems = [
   },
   {
     id: 'seo',
-    title: 'SEO Engineering Stack',
-    subtitle: 'Technical Infrastructure',
-    description: 'Technical SEO as infrastructure, not guesswork. Edge-deployed SEO with Cloudflare Workers, programmatic page generation, and custom schema automation.',
+    title: 'Edge SEO Infrastructure',
+    subtitle: 'Network-Layer Control System',
+    description: 'This is not content tuning. We modify the layer between your application and the internet using edge logic, render control, and crawl instrumentation.',
     features: [
-      'Edge computing (Cloudflare Workers)',
-      'Programmatic page generation',
-      'Real-time crawl optimization',
-      'Automated schema markup',
+      'Cloudflare Worker execution for HTML/schema rewrites',
+      'Bot-aware rendering and crawlability engineering',
+      'Automated structured data injection at scale',
+      'CDN and load-path optimization for sub-second delivery',
     ],
     metrics: [
       { label: 'Avg Organic Growth (6mo)', value: 217, suffix: '%' },
@@ -144,7 +144,7 @@ export const SystemsSection = () => {
                     variant={system.color === 'gold' ? 'hero' : system.color === 'teal' ? 'teal' : 'default'}
                     className="gap-2"
                   >
-                    Explore {system.title}
+                    Inspect {system.title}
                     <ArrowRight className="w-4 h-4" />
                   </Button>
                 </div>
