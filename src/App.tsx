@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import Index from "./pages/Index";
 import Scanner from "./pages/Scanner";
 import Truereach from "./pages/Truereach";
@@ -22,15 +23,27 @@ import ServerSideTrackingDetail from "./pages/ServerSideTrackingDetail";
 import DataSovereigntyOverview from "./pages/DataSovereigntyOverview";
 import DataSovereigntyDetail from "./pages/DataSovereigntyDetail";
 import NotFound from "./pages/NotFound";
+import ClientPortal from "./pages/ClientPortal";
+import TechnicalArchitecture from "./pages/TechnicalArchitecture";
+import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
+import ProgrammaticContent from "./pages/ProgrammaticContent";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="dark"
+      enableSystem
+      disableTransitionOnChange
+    >
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/scanner" element={<Scanner />} />
@@ -80,11 +93,18 @@ const App = () => (
             path="/solutions/data-sovereignty/:slug"
             element={<DataSovereigntyDetail />}
           />
+          <Route path="/portal" element={<ClientPortal />} />
+          <Route path="/technical-architecture" element={<TechnicalArchitecture />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<BlogPost />} />
+          <Route path="/programmatic-content" element={<ProgrammaticContent />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

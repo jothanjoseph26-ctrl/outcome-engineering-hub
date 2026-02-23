@@ -15,7 +15,7 @@ const footerLinks = {
     { label: 'Blog', href: '#' },
     { label: 'Careers', href: '#' },
     { label: 'Contact', href: '#' },
-    { label: 'Privacy Policy', href: '#' },
+    { label: 'Privacy Policy', href: '/privacy-policy' },
   ],
   resources: [
     { label: 'Free Revenue Audit', href: '#' },
