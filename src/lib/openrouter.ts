@@ -43,8 +43,15 @@ export interface Model {
 }
 
 export const OPENROUTER_MODELS = {
+  // FREE MODELS (Priority)
+  GEMINI_FLASH: 'google/gemini-2.0-flash-exp',
+  DEEPSEEK_V3: 'deepseek/deepseek-chat-v3-0324',
+  LLAMA_3_1_8B: 'meta-llama/llama-3.1-8b-instruct',
+  MISTRAL_NEMO: 'mistralai/mistral-nemo',
+  CLAUDE_HAIKU: 'anthropic/claude-3.5-haiku',
+  
+  // PAID MODELS
   CLAUDE_SONNET: 'anthropic/claude-3.5-sonnet',
-  CLAUDE_HAIKU: 'anthropic/claude-3-haiku',
   GPT4_TURBO: 'openai/gpt-4-turbo',
   GPT35_TURBO: 'openai/gpt-3.5-turbo',
   GEMINI_PRO: 'google/gemini-pro-1.5',
@@ -52,6 +59,16 @@ export const OPENROUTER_MODELS = {
   LLAMA3_70B: 'meta-llama/llama-3-70b-instruct',
   PHI3_MEDIUM: 'microsoft/phi-3-medium-128k-instruct',
 } as const;
+
+export const FREE_MODELS = [
+  OPENROUTER_MODELS.GEMINI_FLASH,
+  OPENROUTER_MODELS.DEEPSEEK_V3,
+  OPENROUTER_MODELS.LLAMA_3_1_8B,
+  OPENROUTER_MODELS.MISTRAL_NEMO,
+  OPENROUTER_MODELS.CLAUDE_HAIKU,
+] as const;
+
+export const DEFAULT_MODEL = OPENROUTER_MODELS.GEMINI_FLASH;
 
 export type ModelId = typeof OPENROUTER_MODELS[keyof typeof OPENROUTER_MODELS];
 
@@ -83,7 +100,7 @@ class OpenRouterService {
 
   async chat(
     messages: Message[],
-    model: ModelId = OPENROUTER_MODELS.CLAUDE_SONNET,
+    model: ModelId = DEFAULT_MODEL,
     options: { temperature?: number; maxTokens?: number } = {}
   ): Promise<string> {
     await this.rateLimit();
@@ -157,7 +174,7 @@ class OpenRouterService {
     const result = await this.chat([
       { role: 'system', content: systemPrompt },
       { role: 'user', content: prompt },
-    ], OPENROUTER_MODELS.CLAUDE_SONNET, { temperature: 0.3 });
+    ], DEFAULT_MODEL, { temperature: 0.3 });
 
     try {
       return JSON.parse(result);
@@ -182,7 +199,7 @@ class OpenRouterService {
     const result = await this.chat([
       { role: 'system', content: systemPrompt },
       { role: 'user', content: prompt },
-    ], OPENROUTER_MODELS.CLAUDE_SONNET, { temperature: 0.5 });
+    ], DEFAULT_MODEL, { temperature: 0.5 });
 
     try {
       return JSON.parse(result);
@@ -222,7 +239,7 @@ class OpenRouterService {
     const result = await this.chat([
       { role: 'system', content: systemPrompt },
       { role: 'user', content: prompt },
-    ], OPENROUTER_MODELS.CLAUDE_SONNET, { temperature: 0.7, maxTokens: 8192 });
+    ], DEFAULT_MODEL, { temperature: 0.7, maxTokens: 8192 });
 
     try {
       return JSON.parse(result);

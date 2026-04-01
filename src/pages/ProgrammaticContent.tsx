@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { trendService, blogService, type Trend, type BlogPost } from '@/lib/blog-service';
-import { openrouter, OPENROUTER_MODELS } from '@/lib/openrouter';
+import { openrouter, OPENROUTER_MODELS, DEFAULT_MODEL } from '@/lib/openrouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -211,7 +211,7 @@ const ProgrammaticContent = () => {
                   AI: {aiStatus === 'connected' ? 'Connected' : aiStatus === 'error' ? 'Error' : 'Testing...'}
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  Model: {OPENROUTER_MODELS.CLAUDE_SONNET}
+                  Model: {DEFAULT_MODEL}
                 </span>
               </div>
             </div>
