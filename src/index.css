@@ -85,6 +85,36 @@
     --input: 240 5% 18%;
     --ring: 38 85% 55%;
   }
+
+  /* Light mode */
+  .light {
+    --background: 0 0% 100%;
+    --foreground: 240 6% 10%;
+    --card: 0 0% 98%;
+    --card-foreground: 240 6% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 6% 10%;
+    --primary: 38 85% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 180 45% 45%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 240 4% 95%;
+    --muted-foreground: 240 4% 40%;
+    --accent: 38 85% 55%;
+    --accent-foreground: 240 6% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5% 90%;
+    --input: 240 5% 90%;
+    --ring: 38 85% 55%;
+    --surface-glass: 0 0% 98%;
+    --surface-elevated: 0 0% 100%;
+    --text-primary: 240 6% 10%;
+    --text-secondary: 240 4% 40%;
+    --text-muted: 240 4% 55%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 6% 10%;
+  }
 }
 
 @layer base {
@@ -358,7 +388,7 @@
   display: flex;
   align-items: center;
   overflow: clip;
-  padding-top: 8rem;
+  padding-top: calc(9rem + env(safe-area-inset-top));
   padding-bottom: 4rem;
   background:
     radial-gradient(circle at 90% 0%, hsl(168 50% 16% / 0.2), transparent 40%),
@@ -396,6 +426,7 @@
     0 30px 80px hsl(126 76% 56% / 0.16),
     inset 0 0 80px hsl(126 76% 56% / 0.06);
   overflow: hidden;
+  min-width: 0;
   backdrop-filter: blur(4px);
   animation: olTerminalBoot 500ms ease-out;
 }
@@ -449,6 +480,11 @@
   grid-template-columns: 1fr;
   gap: 2rem;
   padding: 1.2rem;
+  min-width: 0;
+}
+
+.ol-terminal__left {
+  min-width: 0;
 }
 
 .ol-commandline {
@@ -469,6 +505,7 @@
 .ol-typing {
   color: hsl(125 90% 82%);
   width: 0;
+  max-width: 100%;
   white-space: nowrap;
   overflow: hidden;
   border-right: 2px solid hsl(125 90% 82%);
@@ -506,6 +543,7 @@
   line-height: 1.05;
   text-transform: uppercase;
   letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
 }
 
 .ol-headline::before,
@@ -584,12 +622,14 @@
 .ol-cta-primary {
   justify-content: center;
   background: linear-gradient(90deg, hsl(129 80% 48%), hsl(163 82% 46%));
+  min-width: 0;
 }
 
 .ol-cta-secondary {
   justify-content: center;
   border-color: hsl(126 76% 56% / 0.5);
   color: hsl(126 76% 68%);
+  min-width: 0;
 }
 
 .ol-social-proof {
@@ -769,16 +809,117 @@
 
 @media (max-width: 640px) {
   .ol-hero {
-    padding-top: 7rem;
-    padding-bottom: 2.5rem;
+    align-items: flex-start;
+    padding-top: calc(7.25rem + env(safe-area-inset-top));
+    padding-bottom: 2rem;
+    min-height: auto;
+  }
+
+  .ol-terminal {
+    border-radius: 8px;
+  }
+
+  .ol-terminal__header {
+    height: 44px;
+    padding: 0 0.75rem;
+  }
+
+  .ol-terminal__title {
+    font-size: 0.7rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ol-terminal__body {
+    padding: 1rem;
+    gap: 1.25rem;
+  }
+
+  .ol-commandline {
+    display: block;
+    font-size: 0.8rem;
+    line-height: 1.4;
+  }
+
+  .ol-typing {
+    width: auto;
+    max-width: 100%;
+    white-space: normal;
+    border-right: 0;
+    animation: none;
   }
 
   .ol-code-block {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
+    padding: 0.75rem;
+    border-radius: 6px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .ol-headline {
+    font-size: clamp(1.4rem, 5vw, 1.8rem);
+    margin-top: 0.8rem;
+    line-height: 1.15;
+  }
+
+  .ol-headline::before,
+  .ol-headline::after {
+    display: none;
+  }
+
+  .ol-tagline {
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  .ol-metrics {
+    gap: 0.6rem;
+  }
+
+  .ol-metric-item {
+    padding: 0.65rem 0.7rem;
+  }
+
+  .ol-metric-item .value {
+    font-size: 1.1rem;
+  }
+
+  .ol-cta-group {
+    gap: 0.6rem;
+  }
+
+  .ol-cta-group > * {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    min-height: 3rem;
+    padding: 0.72rem 0.9rem;
+    font-size: 1rem;
+    white-space: normal !important;
+    line-height: 1.25;
+    text-align: center;
+    overflow: visible;
+  }
+
+  .ol-terminal__right {
+    display: none;
   }
 
   .ol-terminal__footer {
+    font-size: 0.6rem;
+    padding: 0 0.7rem;
+    gap: 0.4rem;
+  }
+
+  .ol-social-proof p {
+    font-size: 0.7rem;
+  }
+
+  .ol-logo-row span {
     font-size: 0.65rem;
+    padding: 0.2rem 0.5rem;
   }
 }
 

@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { AnimatedCounter } from '@/components/AnimatedCounter';
 import { ArrowRight, Users, MessageSquare, Search, Zap } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import dashboardPreview from '@/assets/dashboard-preview.jpg';
 import whatsappSystem from '@/assets/whatsapp-system.jpg';
 
@@ -24,6 +25,7 @@ const systems = [
     icon: Users,
     color: 'gold',
     image: dashboardPreview,
+    link: '/truereach',
   },
   {
     id: 'whatsapp',
@@ -44,6 +46,7 @@ const systems = [
     icon: MessageSquare,
     color: 'teal',
     image: whatsappSystem,
+    link: '/whatsapp',
   },
   {
     id: 'seo',
@@ -64,6 +67,7 @@ const systems = [
     icon: Search,
     color: 'success',
     image: dashboardPreview,
+    link: '/solutions/edge-seo-infrastructure',
   },
 ];
 
@@ -143,9 +147,12 @@ export const SystemsSection = () => {
                   <Button 
                     variant={system.color === 'gold' ? 'hero' : system.color === 'teal' ? 'teal' : 'default'}
                     className="gap-2"
+                    asChild
                   >
-                    Inspect {system.title}
-                    <ArrowRight className="w-4 h-4" />
+                    <Link to={system.link}>
+                      Inspect {system.title}
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
                   </Button>
                 </div>
 

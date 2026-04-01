@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Briefcase, Compass, Vote } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import revenueGrowth from '@/assets/revenue-growth.jpg';
 import marketDominance from '@/assets/market-dominance.jpg';
 import electoralVictory from '@/assets/electoral-victory.jpg';
@@ -21,6 +22,7 @@ const paths = [
     cta: 'Engineer My Revenue',
     color: 'gold',
     image: revenueGrowth,
+    link: '/whatsapp',
   },
   {
     icon: Compass,
@@ -38,6 +40,7 @@ const paths = [
     cta: 'Dominate My Market',
     color: 'teal',
     image: marketDominance,
+    link: '/truereach',
   },
   {
     icon: Vote,
@@ -55,6 +58,7 @@ const paths = [
     cta: 'Power My Campaign',
     color: 'success',
     image: electoralVictory,
+    link: '/truereach',
   },
 ];
 
@@ -145,9 +149,12 @@ export const PathSelectorSection = () => {
               <Button 
                 variant={path.color === 'gold' ? 'hero' : path.color === 'teal' ? 'teal' : 'default'}
                 className="w-full gap-2"
+                asChild
               >
-                {path.cta}
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <Link to={path.link}>
+                  {path.cta}
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
               </Button>
 
               {/* Hover border glow */}

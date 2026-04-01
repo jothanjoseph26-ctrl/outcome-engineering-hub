@@ -14,6 +14,143 @@ export type Database = {
   }
   public: {
     Tables: {
+      blog_posts: {
+        Row: {
+          id: string
+          title: string
+          slug: string
+          content: string | null
+          excerpt: string | null
+          author: string | null
+          status: string
+          seo_title: string | null
+          seo_description: string | null
+          featured_image: string | null
+          tags: string[] | null
+          category: string | null
+          published_at: string | null
+          scheduled_for: string | null
+          views: number | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          slug: string
+          content?: string | null
+          excerpt?: string | null
+          author?: string | null
+          status?: string
+          seo_title?: string | null
+          seo_description?: string | null
+          featured_image?: string | null
+          tags?: string[] | null
+          category?: string | null
+          published_at?: string | null
+          scheduled_for?: string | null
+          views?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          slug?: string
+          content?: string | null
+          excerpt?: string | null
+          author?: string | null
+          status?: string
+          seo_title?: string | null
+          seo_description?: string | null
+          featured_image?: string | null
+          tags?: string[] | null
+          category?: string | null
+          published_at?: string | null
+          scheduled_for?: string | null
+          views?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      trends: {
+        Row: {
+          id: string
+          topic: string
+          source: string | null
+          relevance_score: number | null
+          keywords: string[] | null
+          detected_at: string
+          expires_at: string | null
+        }
+        Insert: {
+          id?: string
+          topic: string
+          source?: string | null
+          relevance_score?: number | null
+          keywords?: string[] | null
+          detected_at?: string
+          expires_at?: string | null
+        }
+        Update: {
+          id?: string
+          topic?: string
+          source?: string | null
+          relevance_score?: number | null
+          keywords?: string[] | null
+          detected_at?: string
+          expires_at?: string | null
+        }
+        Relationships: []
+      }
+      content_generation_jobs: {
+        Row: {
+          id: string
+          trend_id: string | null
+          status: string | null
+          title: string | null
+          slug: string | null
+          content: string | null
+          error_message: string | null
+          articles_generated: number | null
+          created_at: string
+          completed_at: string | null
+        }
+        Insert: {
+          id?: string
+          trend_id?: string | null
+          status?: string | null
+          title?: string | null
+          slug?: string | null
+          content?: string | null
+          error_message?: string | null
+          articles_generated?: number | null
+          created_at?: string
+          completed_at?: string | null
+        }
+        Update: {
+          id?: string
+          trend_id?: string | null
+          status?: string | null
+          title?: string | null
+          slug?: string | null
+          content?: string | null
+          error_message?: string | null
+          articles_generated?: number | null
+          created_at?: string
+          completed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_generation_jobs_trend_id_fkey"
+            columns: ["trend_id"]
+            isOneToOne: false
+            referencedRelation: "trends"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       scan_results: {
         Row: {
           ai_summary: string | null

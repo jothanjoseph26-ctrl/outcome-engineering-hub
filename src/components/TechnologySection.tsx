@@ -10,6 +10,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 const edgePillars = [
   {
@@ -216,11 +217,15 @@ export const TechnologySection = () => {
             We do not sell activity. We design and operate technical systems that compound revenue.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Button variant="hero" className="gap-2">
-              Start Infrastructure Audit
+            <Button variant="hero" className="gap-2" asChild>
+              <Link to="/scanner">
+                Start Infrastructure Audit
+              </Link>
             </Button>
-            <Button variant="heroOutline" className="gap-2">
-              See Technical Architecture
+            <Button variant="heroOutline" className="gap-2" asChild>
+              <Link to="/technical-architecture">
+                See Technical Architecture
+              </Link>
             </Button>
           </div>
           <div className="mt-6 flex flex-wrap gap-3">

@@ -12,26 +12,42 @@ import { ProcessSection } from '@/components/ProcessSection';
 import { PricingSection } from '@/components/PricingSection';
 import { CTASection } from '@/components/CTASection';
 import { Footer } from '@/components/Footer';
+import { ScrollToTop } from '@/components/ScrollToTop';
+import { ROICalculator } from '@/components/ROICalculator';
+import { CaseStudyGallery } from '@/components/CaseStudyGallery';
+import { DashboardPreview } from '@/components/DashboardPreview';
+import { ComparisonTool } from '@/components/ComparisonTool';
+import { LiveChatWidget } from '@/components/LiveChatWidget';
+import { ResourceHub } from '@/components/ResourceHub';
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main>
+      <main className="pt-16 lg:pt-24">
         <HeroSection />
         <PositioningSection />
         <PathSelectorSection />
         <ComparisonSection />
-        <SystemsSection />
+        <div id="systems">
+          <SystemsSection />
+        </div>
         <TechnologySection />
         <OutcomeBrainSection />
         <ResultsSection />
+        <CaseStudyGallery />
+        <DashboardPreview />
+        <ComparisonTool />
+        <ROICalculator />
+        <ResourceHub />
         <AudienceSection />
         <ProcessSection />
         <PricingSection />
         <CTASection />
       </main>
       <Footer />
+      <ScrollToTop />
+      <LiveChatWidget />
     </div>
   );
 };

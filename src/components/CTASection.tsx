@@ -43,9 +43,11 @@ export const CTASection = () => {
                 <ArrowRight className="w-5 h-5" />
               </Link>
             </Button>
-            <Button variant="heroOutline" size="xl" className="gap-2">
-              <Phone className="w-5 h-5" />
-              Book 30-Min Strategy Call
+            <Button variant="heroOutline" size="xl" className="gap-2" asChild>
+              <Link to="/scanner">
+                <Phone className="w-5 h-5" />
+                Book 30-Min Strategy Call
+              </Link>
             </Button>
           </div>
 
@@ -60,7 +62,7 @@ export const CTASection = () => {
                 <Phone className="w-5 h-5 text-teal" />
                 <span className="text-sm">Call Us</span>
               </a>
-              <a href="#" className="flex items-center justify-center gap-2 p-3 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+              <a href="https://wa.me/2340000000000" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 p-3 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
                 <MessageSquare className="w-5 h-5 text-success" />
                 <span className="text-sm">WhatsApp</span>
               </a>
