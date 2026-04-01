@@ -1,54 +1,61 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, X, Send, Minimize2, Phone } from 'lucide-react';
+import { MessageCircle, X, Send, Minimize2, Phone, Loader2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { openrouter, type Message as AIMessage } from '@/lib/openrouter';
 
-interface Message {
+interface ChatMessage {
   id: string;
   text: string;
-  sender: 'user' | 'bot';
+  sender: 'user' | 'assistant';
   timestamp: Date;
 }
 
-const botMessages = [
-  "Hi there! 👋 I'm Outcome Labs' AI assistant. How can I help you today?",
-  "I can help you with:\n• Understanding our services\n• Scheduling a call\n• Getting a free audit\n• Answering pricing questions",
+const WELCOME_MESSAGES = [
+  "Hi there! I am Outcome Labs' AI assistant powered by Claude. How can I help you today?",
+  "I can help you with:\n• SEO engineering & optimization\n• Programmatic content generation\n• Server-side tracking\n• WhatsApp business solutions\n• Scheduling a free audit",
 ];
 
 export function LiveChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [aiConnected, setAiConnected] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen && messages.length === 0) {
       setIsTyping(true);
       let delay = 0;
-      botMessages.forEach((msg, index) => {
+      WELCOME_MESSAGES.forEach((msg, index) => {
         setTimeout(() => {
           setMessages(prev => [...prev, {
-            id: `bot-${index}`,
+            id: `welcome-${index}`,
             text: msg,
-            sender: 'bot',
+            sender: 'assistant',
             timestamp: new Date()
           }]);
-          if (index === botMessages.length - 1) {
+          if (index === WELCOME_MESSAGES.length - 1) {
             setIsTyping(false);
           }
         }, delay);
-        delay += 1500;
+        delay += 1200;
       });
     }
   }, [isOpen, messages.length]);
 
-  const handleSend = () => {
-    if (!inputValue.trim()) return;
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isTyping]);
 
-    const userMessage: Message = {
+  const handleSend = async () => {
+    if (!inputValue.trim() || isTyping) return;
+
+    const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
       text: inputValue,
       sender: 'user',
@@ -56,24 +63,40 @@ export function LiveChatWidget() {
     };
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
-
-    // Simulate bot response
     setIsTyping(true);
-    setTimeout(() => {
+
+    try {
+      const conversationHistory: AIMessage[] = messages.map(m => ({
+        role: m.sender === 'user' ? 'user' : 'assistant',
+        content: m.text
+      }));
+
+      const response = await openrouter.chatWithUser(userMessage.text, conversationHistory);
+
       setMessages(prev => [...prev, {
-        id: `bot-${Date.now()}`,
-        text: "Thanks for reaching out! One of our experts will get back to you within 2 hours. Would you like to schedule a call now?",
-        sender: 'bot',
+        id: `assistant-${Date.now()}`,
+        text: response,
+        sender: 'assistant',
         timestamp: new Date()
       }]);
+      setAiConnected(true);
+    } catch (error) {
+      setMessages(prev => [...prev, {
+        id: `error-${Date.now()}`,
+        text: "I apologize, but I'm having trouble connecting to my AI services right now. Please try again or contact us directly.",
+        sender: 'assistant',
+        timestamp: new Date()
+      }]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const quickReplies = [
-    "Book a call",
-    "Get a free audit",
-    "Pricing info"
+    "Tell me about SEO services",
+    "How does programmatic content work?",
+    "Schedule a free audit",
+    "WhatsApp solutions pricing"
   ];
 
   return (
@@ -89,7 +112,7 @@ export function LiveChatWidget() {
           isOpen ? 'hidden' : 'flex'
         }`}
       >
-        <MessageCircle className="h-6 w-6 text-background" />
+        <Sparkles className="h-6 w-6 text-background" />
         <span className="absolute -top-1 -right-1 w-4 h-4 bg-success rounded-full border-2 border-background animate-pulse" />
       </motion.button>
 
@@ -108,17 +131,23 @@ export function LiveChatWidget() {
           >
             <Card className="glass-card h-full flex flex-col overflow-hidden">
               {/* Header */}
-              <div className="bg-gold p-4 flex items-center justify-between">
+              <div className="bg-gradient-to-r from-gold to-amber-500 p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="relative">
                     <div className="w-10 h-10 rounded-full bg-background/20 flex items-center justify-center">
-                      <MessageCircle className="h-5 w-5 text-background" />
+                      <Sparkles className="h-5 w-5 text-background" />
                     </div>
                     <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-success rounded-full border-2 border-gold" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-background">Outcome Labs</h3>
-                    <p className="text-xs text-background/70">AI Assistant • Online</p>
+                    <h3 className="font-semibold text-background">Outcome Labs AI</h3>
+                    <p className="text-xs text-background/70 flex items-center gap-1">
+                      {aiConnected ? (
+                        <>Powered by Claude</>
+                      ) : (
+                        <>Connecting...</>
+                      )}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
@@ -145,40 +174,44 @@ export function LiveChatWidget() {
               {!isMinimized && (
                 <>
                   <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                    {messages.map((message) => (
-                      <motion.div
-                        key={message.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div
-                          className={`max-w-[80%] p-3 rounded-2xl ${
-                            message.sender === 'user'
-                              ? 'bg-gold text-background'
-                              : 'bg-card border border-border'
-                          }`}
+                    {messages.map((message) => {
+                      return (
+                        <motion.div
+                          key={message.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                         >
-                          <p className="text-sm whitespace-pre-wrap">{message.text}</p>
-                        </div>
-                      </motion.div>
-                    ))}
+                          <div
+                            className={`max-w-[85%] p-3 rounded-2xl ${
+                              message.sender === 'user'
+                                ? 'bg-gold text-background'
+                                : 'bg-card border border-border'
+                            }`}
+                          >
+                            <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+                            <p className={`text-xs mt-1 ${
+                              message.sender === 'user' ? 'text-background/60' : 'text-muted-foreground'
+                            }`}>
+                              {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
                     
                     {isTyping && (
                       <div className="flex justify-start">
                         <div className="bg-card border border-border p-3 rounded-2xl">
-                          <div className="flex gap-1">
-                            <span className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: '0ms' }} />
-                            <span className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: '150ms' }} />
-                            <span className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: '300ms' }} />
-                          </div>
+                          <Loader2 className="h-4 w-4 animate-spin text-gold" />
                         </div>
                       </div>
                     )}
+                    <div ref={messagesEndRef} />
                   </div>
 
                   {/* Quick Replies */}
-                  {messages.length <= 2 && (
+                  {messages.length <= 4 && (
                     <div className="px-4 pb-2 flex flex-wrap gap-2">
                       {quickReplies.map((reply) => (
                         <Button
@@ -203,11 +236,21 @@ export function LiveChatWidget() {
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                        placeholder="Type your message..."
+                        placeholder="Ask about our services..."
                         className="bg-background border-border"
+                        disabled={isTyping}
                       />
-                      <Button variant="gold" size="icon" onClick={handleSend}>
-                        <Send className="h-4 w-4" />
+                      <Button 
+                        variant="gold" 
+                        size="icon" 
+                        onClick={handleSend}
+                        disabled={isTyping || !inputValue.trim()}
+                      >
+                        {isTyping ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Send className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                     <div className="flex items-center justify-center gap-2 mt-3 text-xs text-muted-foreground">
