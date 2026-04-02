@@ -1,35 +1,35 @@
-const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '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';
-const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1';
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '';
+const CHAT_GATEWAY_URL = SUPABASE_URL ? `${SUPABASE_URL.replace(/\/$/, '')}/functions/v1/chat` : '';
 
 export interface Message {
   role: 'system' | 'user' | 'assistant';
   content: string;
 }
 
-export interface ChatCompletionRequest {
-  model: string;
-  messages: Message[];
-  temperature?: number;
-  max_tokens?: number;
-  stream?: boolean;
+export interface ChatModerationResult {
+  allowed: boolean;
+  labels: string[];
+  reason?: string;
 }
 
-export interface ChatCompletionResponse {
-  id: string;
+export interface ChatModelMetadata {
+  provider: string;
   model: string;
-  choices: {
-    index: number;
-    message: {
-      role: string;
-      content: string;
-    };
-    finish_reason: string;
-  }[];
-  usage: {
-    prompt_tokens: number;
-    completion_tokens: number;
-    total_tokens: number;
-  };
+  promptVersion?: string;
+  latencyMs?: number;
+  fallbackUsed?: boolean;
+}
+
+export interface ChatSendResult {
+  message: string;
+  status: 'success' | 'blocked' | 'error';
+  sessionId: string | null;
+  sessionToken: string | null;
+  requiresHumanHandoff: boolean;
+  fallbackUsed: boolean;
+  moderationResult?: ChatModerationResult;
+  modelMetadata?: ChatModelMetadata;
 }
 
 export interface Model {
@@ -43,14 +43,11 @@ export interface Model {
 }
 
 export const OPENROUTER_MODELS = {
-  // FREE MODELS (Priority)
   GEMINI_FLASH: 'google/gemini-2.0-flash-exp',
   DEEPSEEK_V3: 'deepseek/deepseek-chat-v3-0324',
   LLAMA_3_1_8B: 'meta-llama/llama-3.1-8b-instruct',
   MISTRAL_NEMO: 'mistralai/mistral-nemo',
   CLAUDE_HAIKU: 'anthropic/claude-3.5-haiku',
-  
-  // PAID MODELS
   CLAUDE_SONNET: 'anthropic/claude-3.5-sonnet',
   GPT4_TURBO: 'openai/gpt-4-turbo',
   GPT35_TURBO: 'openai/gpt-3.5-turbo',
@@ -72,88 +69,166 @@ export const DEFAULT_MODEL = OPENROUTER_MODELS.GEMINI_FLASH;
 
 export type ModelId = typeof OPENROUTER_MODELS[keyof typeof OPENROUTER_MODELS];
 
+interface GatewayResponse<T = unknown> {
+  status: 'success' | 'blocked' | 'error';
+  message?: string;
+  data?: T;
+  sessionId?: string | null;
+  sessionToken?: string | null;
+  requiresHumanHandoff?: boolean;
+  fallbackUsed?: boolean;
+}
+
 class OpenRouterService {
-  private apiKey: string;
-  private baseUrl: string;
   private requestCount = 0;
   private lastRequestTime = 0;
-  private readonly requestsPerMinute = 60;
+  private chatSessionId: string | null = null;
+  private chatSessionToken: string | null = null;
 
-  constructor() {
-    this.apiKey = OPENROUTER_API_KEY;
-    this.baseUrl = OPENROUTER_API_URL;
+  private async invokeGateway<T>(
+    payload: Record<string, unknown>,
+    path = '',
+    method: 'POST' | 'GET' = 'POST',
+  ): Promise<GatewayResponse<T>> {
+    if (!CHAT_GATEWAY_URL) {
+      throw new Error('Chat gateway URL is not configured');
+    }
+
+    const response = await fetch(`${CHAT_GATEWAY_URL}${path}`, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: SUPABASE_PUBLISHABLE_KEY,
+        Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+        ...(this.chatSessionToken ? { 'x-chat-session-token': this.chatSessionToken } : {}),
+      },
+      body: method === 'GET' ? undefined : JSON.stringify(payload),
+    });
+
+    this.requestCount += 1;
+    this.lastRequestTime = Date.now();
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(data.error || data.message || `Gateway error: ${response.status}`);
+    }
+
+    return data as GatewayResponse<T>;
   }
 
-  private async rateLimit(): Promise<void> {
-    const now = Date.now();
-    const timeSinceLastRequest = now - this.lastRequestTime;
-    
-    if (this.requestCount >= this.requestsPerMinute) {
-      const waitTime = Math.ceil((60000 - timeSinceLastRequest) / 1000);
-      if (waitTime > 0) {
-        console.log(`Rate limit reached. Waiting ${waitTime} seconds...`);
-        await new Promise(resolve => setTimeout(resolve, waitTime * 1000));
-      }
-      this.requestCount = 0;
+  private async ensureChatSession(): Promise<void> {
+    if (this.chatSessionId && this.chatSessionToken) {
+      return;
     }
+
+    try {
+      const response = await this.invokeGateway<{ tenantId: string | null; channel: string }>({
+        operation: 'createSession',
+        channel: 'web',
+      }, '/session');
+
+      this.chatSessionId = response.sessionId ?? null;
+      this.chatSessionToken = response.sessionToken ?? null;
+    } catch (error) {
+      console.warn('Unable to create persistent chat session:', error);
+    }
+  }
+
+  private mapResponse(response: GatewayResponse<unknown>): ChatSendResult {
+    const message = typeof response.message === 'string' ? response.message : this.unwrapText(response);
+
+    return {
+      message,
+      status: response.status,
+      sessionId: response.sessionId ?? this.chatSessionId,
+      sessionToken: response.sessionToken ?? this.chatSessionToken,
+      requiresHumanHandoff: Boolean(response.requiresHumanHandoff),
+      fallbackUsed: Boolean(response.fallbackUsed),
+      moderationResult: response.moderationResult as ChatModerationResult | undefined,
+      modelMetadata: response.modelMetadata as ChatModelMetadata | undefined,
+    };
+  }
+
+  private unwrapText<T>(response: GatewayResponse<T>): string {
+    if (typeof response.message === 'string' && response.message.trim()) {
+      return response.message;
+    }
+
+    const data = response.data as { content?: string } | undefined;
+    return data?.content || '';
   }
 
   async chat(
     messages: Message[],
     model: ModelId = DEFAULT_MODEL,
-    options: { temperature?: number; maxTokens?: number } = {}
+    options: { temperature?: number; maxTokens?: number } = {},
   ): Promise<string> {
-    await this.rateLimit();
-
-    const request: ChatCompletionRequest = {
-      model,
+    const response = await this.invokeGateway<{ content: string }>({
+      operation: 'chat',
       messages,
+      model,
       temperature: options.temperature ?? 0.7,
-      max_tokens: options.maxTokens ?? 4096,
-    };
+      maxTokens: options.maxTokens ?? 4096,
+    });
 
-    try {
-      this.requestCount++;
-      this.lastRequestTime = Date.now();
-
-      const response = await fetch(`${this.baseUrl}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`,
-          'HTTP-Referer': 'https://outcomelabs.online',
-          'X-Title': 'OutcomeLabs',
-        },
-        body: JSON.stringify(request),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error?.message || `API Error: ${response.status}`);
-      }
-
-      const data: ChatCompletionResponse = await response.json();
-      return data.choices[0]?.message?.content || '';
-    } catch (error) {
-      console.error('OpenRouter API Error:', error);
-      throw error;
+    if (response.status === 'blocked') {
+      return response.message || 'Your message was blocked by policy.';
     }
+
+    return this.unwrapText(response);
+  }
+
+  async sendChatMessage(
+    userMessage: string,
+    conversationHistory: Message[] = [],
+  ): Promise<ChatSendResult> {
+    await this.ensureChatSession();
+
+    if (this.chatSessionId && this.chatSessionToken) {
+      try {
+        const response = await this.invokeGateway<unknown>({
+          operation: 'message',
+          sessionId: this.chatSessionId,
+          sessionToken: this.chatSessionToken,
+          message: userMessage,
+          channel: 'web',
+        }, '/message');
+
+        if (response.sessionId) {
+          this.chatSessionId = response.sessionId;
+        }
+        if (response.sessionToken) {
+          this.chatSessionToken = response.sessionToken;
+        }
+
+        return this.mapResponse(response);
+      } catch (error) {
+        console.warn('Persistent chat session failed, using stateless fallback:', error);
+      }
+    }
+
+    const response = await this.invokeGateway<unknown>({
+      operation: 'chat',
+      messages: conversationHistory,
+      model: DEFAULT_MODEL,
+      temperature: 0.7,
+      maxTokens: 4096,
+    });
+
+    return this.mapResponse(response);
   }
 
   async generateContent(prompt: string, context?: string): Promise<string> {
-    const systemPrompt = `You are an expert content writer for OutcomeLabs, a company specializing in SEO engineering, programmatic content generation, and digital transformation. Generate high-quality, SEO-optimized content that is engaging and informative.`;
+    const response = await this.invokeGateway<{ content: string }>({
+      operation: 'generateContent',
+      prompt,
+      context,
+      model: DEFAULT_MODEL,
+      temperature: 0.7,
+      maxTokens: 4096,
+    });
 
-    const messages: Message[] = [
-      { role: 'system', content: systemPrompt },
-    ];
-
-    if (context) {
-      messages.push({ role: 'user', content: `Context: ${context}\n\n${prompt}` });
-    } else {
-      messages.push({ role: 'user', content: prompt });
-    }
-
-    return this.chat(messages);
+    return this.unwrapText(response);
   }
 
   async analyzeSEO(pageContent: string): Promise<{
@@ -161,26 +236,23 @@ class OpenRouterService {
     issues: string[];
     recommendations: string[];
   }> {
-    const prompt = `Analyze the following webpage content for SEO performance. Return a JSON object with:
-    - score: number from 0-100
-    - issues: array of SEO issues found
-    - recommendations: array of improvement suggestions
-    
-    Content:\n${pageContent.slice(0, 5000)}`;
+    const response = await this.invokeGateway<{
+      score: number;
+      issues: string[];
+      recommendations: string[];
+    }>({
+      operation: 'analyzeSEO',
+      pageContent,
+      model: DEFAULT_MODEL,
+      temperature: 0.3,
+      maxTokens: 1024,
+    });
 
-    const systemPrompt = `You are an SEO expert. Return ONLY valid JSON in this format:
-    {"score": 85, "issues": ["issue1", "issue2"], "recommendations": ["rec1", "rec2"]}`;
-
-    const result = await this.chat([
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: prompt },
-    ], DEFAULT_MODEL, { temperature: 0.3 });
-
-    try {
-      return JSON.parse(result);
-    } catch {
-      return { score: 75, issues: ['Unable to parse analysis'], recommendations: ['Review content manually'] };
-    }
+    return (response.data as { score: number; issues: string[]; recommendations: string[] }) || {
+      score: 75,
+      issues: ['Unable to parse analysis'],
+      recommendations: ['Review content manually'],
+    };
   }
 
   async detectTrends(topics: string[]): Promise<{
@@ -188,28 +260,27 @@ class OpenRouterService {
     relevanceScores: Record<string, number>;
     keywords: Record<string, string[]>;
   }> {
-    const prompt = `Analyze these topics and determine which are trending in digital marketing/tech:
-    ${topics.join(', ')}
-    
-    Return JSON with trending topics ranked by relevance, relevance scores (0-1), and suggested keywords for each.`;
+    const response = await this.invokeGateway<{
+      trending: string[];
+      relevanceScores: Record<string, number>;
+      keywords: Record<string, string[]>;
+    }>({
+      operation: 'detectTrends',
+      topics,
+      model: DEFAULT_MODEL,
+      temperature: 0.5,
+      maxTokens: 1024,
+    });
 
-    const systemPrompt = `You are a trend analyst. Return ONLY valid JSON:
-    {"trending": ["topic1", "topic2"], "relevanceScores": {"topic1": 0.9}, "keywords": {"topic1": ["keyword1", "keyword2"]}}`;
-
-    const result = await this.chat([
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: prompt },
-    ], DEFAULT_MODEL, { temperature: 0.5 });
-
-    try {
-      return JSON.parse(result);
-    } catch {
-      return { 
-        trending: topics, 
-        relevanceScores: Object.fromEntries(topics.map(t => [t, 0.7])), 
-        keywords: Object.fromEntries(topics.map(t => [t, [t.toLowerCase()]])) 
-      };
-    }
+    return (response.data as {
+      trending: string[];
+      relevanceScores: Record<string, number>;
+      keywords: Record<string, string[]>;
+    }) || {
+      trending: topics,
+      relevanceScores: Object.fromEntries(topics.map((topic) => [topic, 0.7])),
+      keywords: Object.fromEntries(topics.map((topic) => [topic, [topic.toLowerCase()]])),
+    };
   }
 
   async generateBlogPost(topic: string, keywords: string[]): Promise<{
@@ -220,36 +291,43 @@ class OpenRouterService {
     seoDescription: string;
     tags: string[];
   }> {
-    const prompt = `Generate a comprehensive blog post about "${topic}" for OutcomeLabs.
-    
-    Requirements:
-    - Include these keywords naturally: ${keywords.join(', ')}
-    - Minimum 1500 words
-    - Include proper headings (H2, H3)
-    - Include bullet points and numbered lists
-    - SEO optimized with keyword density ~2%
-    - Include meta description (max 160 chars)
-    - Include 3-5 relevant tags
-    
-    Return JSON with: title, content, excerpt, seoTitle, seoDescription, tags`;
+    const response = await this.invokeGateway<{
+      title: string;
+      content: string;
+      excerpt: string;
+      seoTitle: string;
+      seoDescription: string;
+      tags: string[];
+    }>({
+      operation: 'generateBlogPost',
+      topic,
+      keywords,
+      model: DEFAULT_MODEL,
+      temperature: 0.7,
+      maxTokens: 8192,
+    });
 
-    const systemPrompt = `You are an expert SEO content writer. Return ONLY valid JSON matching this schema:
-    {"title": "...", "content": "...", "excerpt": "...", "seoTitle": "...", "seoDescription": "...", "tags": ["tag1", "tag2"]}`;
-
-    const result = await this.chat([
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: prompt },
-    ], DEFAULT_MODEL, { temperature: 0.7, maxTokens: 8192 });
-
-    try {
-      return JSON.parse(result);
-    } catch (error) {
-      console.error('Failed to parse blog post:', error);
-      throw new Error('Failed to generate blog post');
-    }
+    return (response.data as {
+      title: string;
+      content: string;
+      excerpt: string;
+      seoTitle: string;
+      seoDescription: string;
+      tags: string[];
+    }) || {
+      title: topic,
+      content: '',
+      excerpt: topic,
+      seoTitle: topic,
+      seoDescription: topic,
+      tags: keywords,
+    };
   }
 
-  async generateMultipleArticles(count: number, themes: string[]): Promise<Array<{
+  async generateMultipleArticles(
+    count: number,
+    themes: string[],
+  ): Promise<Array<{
     title: string;
     content: string;
     excerpt: string;
@@ -258,51 +336,43 @@ class OpenRouterService {
     tags: string[];
     topic: string;
   }>> {
-    const articles = [];
-    const articlesPerTheme = Math.ceil(count / themes.length);
+    const response = await this.invokeGateway<Array<{
+      title: string;
+      content: string;
+      excerpt: string;
+      seoTitle: string;
+      seoDescription: string;
+      tags: string[];
+      topic: string;
+    }>>({
+      operation: 'generateMultipleArticles',
+      count,
+      topics: themes,
+      model: DEFAULT_MODEL,
+    });
 
-    for (const theme of themes) {
-      for (let i = 0; i < articlesPerTheme && articles.length < count; i++) {
-        const angle = i === 0 ? '' : ` (角度 ${i + 1}: 不同的视角或方面)`;
-        try {
-          const article = await this.generateBlogPost(
-            `${theme}${angle}`,
-            [theme.toLowerCase(), '2026', 'marketing', 'digital']
-          );
-          articles.push({ ...article, topic: theme });
-        } catch (error) {
-          console.error(`Failed to generate article for ${theme}:`, error);
-        }
-      }
-    }
-
-    return articles;
+    return (response.data as Array<{
+      title: string;
+      content: string;
+      excerpt: string;
+      seoTitle: string;
+      seoDescription: string;
+      tags: string[];
+      topic: string;
+    }>) || [];
   }
 
   async chatWithUser(userMessage: string, conversationHistory?: Message[]): Promise<string> {
-    const systemPrompt = `You are an AI assistant for OutcomeLabs, a digital marketing and SEO engineering company. 
-    Help users with questions about:
-    - SEO optimization and engineering
-    - Programmatic content generation
-    - Server-side tracking
-    - WhatsApp business solutions
-    - Digital transformation strategies
-    
-    Be helpful, concise, and professional.`;
-
-    const messages: Message[] = [
-      { role: 'system', content: systemPrompt },
-      ...(conversationHistory || []),
-      { role: 'user', content: userMessage },
-    ];
-
-    return this.chat(messages);
+    const response = await this.sendChatMessage(userMessage, conversationHistory);
+    return response.message || 'Sorry, I could not generate a response.';
   }
 
   getUsageStats() {
     return {
       requestsThisMinute: this.requestCount,
-      lastRequestTime: new Date(this.lastRequestTime).toISOString(),
+      lastRequestTime: this.lastRequestTime ? new Date(this.lastRequestTime).toISOString() : null,
+      chatSessionId: this.chatSessionId,
+      chatSessionToken: this.chatSessionToken ? 'set' : null,
     };
   }
 }

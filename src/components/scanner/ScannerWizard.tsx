@@ -5,23 +5,23 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { 
-  ArrowRight, 
-  ArrowLeft, 
-  Target, 
-  Globe, 
-  Building2, 
-  DollarSign, 
-  MessageSquare, 
+import {
+  ArrowRight,
+  ArrowLeft,
+  Target,
+  Globe,
+  Building2,
+  DollarSign,
+  MessageSquare,
   AlertCircle,
-  User,
-  Mail
+  Mail,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { persistScannerSession } from '@/lib/scanner-client';
 
 interface ScannerWizardProps {
-  onScanStart: (scanId: string) => void;
+  onScanStart: (scanId: string, publicToken: string) => void;
 }
 
 type Step = {
@@ -61,11 +61,11 @@ const businessTypes = [
 ];
 
 const budgetRanges = [
-  { value: '0-100000', label: 'Under ₦100K' },
-  { value: '100000-500000', label: '₦100K - ₦500K' },
-  { value: '500000-1000000', label: '₦500K - ₦1M' },
-  { value: '1000000-5000000', label: '₦1M - ₦5M' },
-  { value: '5000000+', label: 'Over ₦5M' },
+  { value: '0-100000', label: 'Under N100K' },
+  { value: '100000-500000', label: 'N100K - N500K' },
+  { value: '500000-1000000', label: 'N500K - N1M' },
+  { value: '1000000-5000000', label: 'N1M - N5M' },
+  { value: '5000000+', label: 'Over N5M' },
 ];
 
 const channelOptions = [
@@ -87,11 +87,35 @@ const problemOptions = [
   { value: 'scaling', label: 'Can\'t scale profitably' },
 ];
 
+export const isValidWebsiteInput = (value: string) => {
+  const trimmed = value.trim();
+
+  if (!trimmed || /\s/.test(trimmed)) {
+    return false;
+  }
+
+  const candidate = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+
+  try {
+    const parsed = new URL(candidate);
+    return (
+      ['http:', 'https:'].includes(parsed.protocol) &&
+      parsed.hostname.includes('.') &&
+      !parsed.hostname.startsWith('.') &&
+      !parsed.hostname.endsWith('.')
+    );
+  } catch {
+    return false;
+  }
+};
+
+export const isValidEmailInput = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+
 export const ScannerWizard = ({ onScanStart }: ScannerWizardProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-  
+
   const [answers, setAnswers] = useState({
     goal: '',
     website: '',
@@ -106,54 +130,68 @@ export const ScannerWizard = ({ onScanStart }: ScannerWizardProps) => {
   const progress = ((currentStep + 1) / steps.length) * 100;
 
   const updateAnswer = (key: string, value: string | string[]) => {
-    setAnswers(prev => ({ ...prev, [key]: value }));
+    setAnswers((prev) => ({ ...prev, [key]: value }));
   };
 
   const toggleChannel = (channel: string) => {
-    setAnswers(prev => ({
+    setAnswers((prev) => ({
       ...prev,
       channels: prev.channels.includes(channel)
-        ? prev.channels.filter(c => c !== channel)
-        : [...prev.channels, channel]
+        ? prev.channels.filter((c) => c !== channel)
+        : [...prev.channels, channel],
     }));
   };
 
   const canProceed = () => {
     switch (steps[currentStep].id) {
-      case 'goal': return !!answers.goal;
-      case 'website': return !!answers.website && answers.website.includes('.');
-      case 'business': return !!answers.businessType;
-      case 'budget': return !!answers.budget;
-      case 'channels': return answers.channels.length > 0;
-      case 'problem': return !!answers.problem;
-      case 'contact': return !!answers.contactEmail && answers.contactEmail.includes('@');
-      default: return true;
+      case 'goal':
+        return !!answers.goal;
+      case 'website':
+        return isValidWebsiteInput(answers.website);
+      case 'business':
+        return !!answers.businessType;
+      case 'budget':
+        return !!answers.budget;
+      case 'channels':
+        return answers.channels.length > 0;
+      case 'problem':
+        return !!answers.problem;
+      case 'contact':
+        return isValidEmailInput(answers.contactEmail);
+      default:
+        return true;
     }
   };
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
-      setCurrentStep(prev => prev + 1);
+      setCurrentStep((prev) => prev + 1);
     }
   };
 
   const handleBack = () => {
     if (currentStep > 0) {
-      setCurrentStep(prev => prev - 1);
+      setCurrentStep((prev) => prev - 1);
     }
   };
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    
+
     try {
-      // Format website URL
       let website = answers.website.trim();
       if (!website.startsWith('http://') && !website.startsWith('https://')) {
         website = `https://${website}`;
       }
 
-      // Create scan in database
+      if (!isValidWebsiteInput(website)) {
+        throw new Error('Enter a valid website URL.');
+      }
+
+      if (!isValidEmailInput(answers.contactEmail)) {
+        throw new Error('Enter a valid email address.');
+      }
+
       const { data, error } = await supabase
         .from('scans')
         .insert({
@@ -175,23 +213,28 @@ export const ScannerWizard = ({ onScanStart }: ScannerWizardProps) => {
 
       if (error) throw error;
 
-      // Start the scan via edge function
-      const { error: scanError } = await supabase.functions.invoke('start-scan', {
-        body: { scanId: data.id }
+      const { data: scanStartData, error: scanError } = await supabase.functions.invoke('start-scan', {
+        body: { scanId: data.id },
       });
 
       if (scanError) {
-        console.error('Error starting scan:', scanError);
-        // Continue anyway - scan will be picked up by worker
+        throw scanError;
       }
 
-      onScanStart(data.id);
+      const publicToken = scanStartData?.publicToken;
+
+      if (typeof publicToken !== 'string' || publicToken.length === 0) {
+        throw new Error('Scan started without a public token.');
+      }
+
+      persistScannerSession({ scanId: data.id, publicToken });
+      onScanStart(data.id, publicToken);
     } catch (error) {
       console.error('Error creating scan:', error);
       toast({
-        title: "Error",
-        description: "Failed to start scan. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to start scan. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setIsSubmitting(false);
@@ -205,14 +248,12 @@ export const ScannerWizard = ({ onScanStart }: ScannerWizardProps) => {
       case 'goal':
         return (
           <div className="grid gap-4 sm:grid-cols-2">
-            {goalOptions.map(option => (
+            {goalOptions.map((option) => (
               <button
                 key={option.value}
                 onClick={() => updateAnswer('goal', option.value)}
                 className={`p-4 rounded-xl border-2 text-left transition-all ${
-                  answers.goal === option.value
-                    ? 'border-gold bg-gold/10'
-                    : 'border-border hover:border-gold/50'
+                  answers.goal === option.value ? 'border-gold bg-gold/10' : 'border-border hover:border-gold/50'
                 }`}
               >
                 <p className="font-semibold text-foreground">{option.label}</p>
@@ -236,7 +277,7 @@ export const ScannerWizard = ({ onScanStart }: ScannerWizardProps) => {
                 className="mt-2 bg-surface-glass border-border text-foreground placeholder:text-muted-foreground"
               />
               <p className="text-sm text-muted-foreground mt-2">
-                We'll scan your website to detect tracking, forms, and conversion elements.
+                We&apos;ll scan your website to detect tracking, forms, and conversion elements.
               </p>
             </div>
           </div>
@@ -245,14 +286,12 @@ export const ScannerWizard = ({ onScanStart }: ScannerWizardProps) => {
       case 'business':
         return (
           <div className="grid gap-3 sm:grid-cols-3">
-            {businessTypes.map(type => (
+            {businessTypes.map((type) => (
               <button
                 key={type.value}
                 onClick={() => updateAnswer('businessType', type.value)}
                 className={`p-3 rounded-xl border-2 text-center transition-all ${
-                  answers.businessType === type.value
-                    ? 'border-gold bg-gold/10'
-                    : 'border-border hover:border-gold/50'
+                  answers.businessType === type.value ? 'border-gold bg-gold/10' : 'border-border hover:border-gold/50'
                 }`}
               >
                 <p className="font-medium text-foreground">{type.label}</p>
@@ -264,14 +303,12 @@ export const ScannerWizard = ({ onScanStart }: ScannerWizardProps) => {
       case 'budget':
         return (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {budgetRanges.map(range => (
+            {budgetRanges.map((range) => (
               <button
                 key={range.value}
                 onClick={() => updateAnswer('budget', range.value)}
                 className={`p-4 rounded-xl border-2 text-center transition-all ${
-                  answers.budget === range.value
-                    ? 'border-gold bg-gold/10'
-                    : 'border-border hover:border-gold/50'
+                  answers.budget === range.value ? 'border-gold bg-gold/10' : 'border-border hover:border-gold/50'
                 }`}
               >
                 <p className="font-semibold text-foreground">{range.label}</p>
@@ -283,7 +320,7 @@ export const ScannerWizard = ({ onScanStart }: ScannerWizardProps) => {
       case 'channels':
         return (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {channelOptions.map(channel => (
+            {channelOptions.map((channel) => (
               <button
                 key={channel.value}
                 onClick={() => toggleChannel(channel.value)}
@@ -305,14 +342,12 @@ export const ScannerWizard = ({ onScanStart }: ScannerWizardProps) => {
       case 'problem':
         return (
           <div className="grid gap-3 sm:grid-cols-2">
-            {problemOptions.map(problem => (
+            {problemOptions.map((problem) => (
               <button
                 key={problem.value}
                 onClick={() => updateAnswer('problem', problem.value)}
                 className={`p-4 rounded-xl border-2 text-left transition-all ${
-                  answers.problem === problem.value
-                    ? 'border-gold bg-gold/10'
-                    : 'border-border hover:border-gold/50'
+                  answers.problem === problem.value ? 'border-gold bg-gold/10' : 'border-border hover:border-gold/50'
                 }`}
               >
                 <p className="font-medium text-foreground">{problem.label}</p>
@@ -346,7 +381,7 @@ export const ScannerWizard = ({ onScanStart }: ScannerWizardProps) => {
                 className="mt-2 bg-surface-glass border-border text-foreground placeholder:text-muted-foreground"
               />
               <p className="text-sm text-muted-foreground mt-2">
-                We'll send your full diagnostic report here.
+                We&apos;ll send your full diagnostic report here.
               </p>
             </div>
           </div>
@@ -359,7 +394,6 @@ export const ScannerWizard = ({ onScanStart }: ScannerWizardProps) => {
 
   return (
     <div className="max-w-4xl mx-auto">
-      {/* Header */}
       <div className="text-center mb-8">
         <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
           Free Revenue Diagnostic
@@ -369,7 +403,6 @@ export const ScannerWizard = ({ onScanStart }: ScannerWizardProps) => {
         </p>
       </div>
 
-      {/* Progress Bar */}
       <div className="mb-8">
         <div className="flex justify-between text-sm text-muted-foreground mb-2">
           <span>Step {currentStep + 1} of {steps.length}</span>
@@ -378,7 +411,6 @@ export const ScannerWizard = ({ onScanStart }: ScannerWizardProps) => {
         <Progress value={progress} className="h-2" />
       </div>
 
-      {/* Step Indicator */}
       <div className="flex justify-center gap-2 mb-8 overflow-x-auto pb-2">
         {steps.map((step, index) => (
           <div
@@ -387,8 +419,8 @@ export const ScannerWizard = ({ onScanStart }: ScannerWizardProps) => {
               index === currentStep
                 ? 'bg-gold text-background'
                 : index < currentStep
-                ? 'bg-gold/20 text-gold'
-                : 'bg-muted text-muted-foreground'
+                  ? 'bg-gold/20 text-gold'
+                  : 'bg-muted text-muted-foreground'
             }`}
           >
             {step.icon}
@@ -396,7 +428,6 @@ export const ScannerWizard = ({ onScanStart }: ScannerWizardProps) => {
         ))}
       </div>
 
-      {/* Card */}
       <Card className="glass-card p-6 md:p-8">
         <AnimatePresence mode="wait">
           <motion.div
@@ -406,7 +437,6 @@ export const ScannerWizard = ({ onScanStart }: ScannerWizardProps) => {
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3 }}
           >
-            {/* Step Header */}
             <div className="mb-6">
               <h2 className="text-xl font-semibold text-foreground mb-2">
                 {steps[currentStep].title}
@@ -416,12 +446,10 @@ export const ScannerWizard = ({ onScanStart }: ScannerWizardProps) => {
               </p>
             </div>
 
-            {/* Step Content */}
             {renderStepContent()}
           </motion.div>
         </AnimatePresence>
 
-        {/* Navigation */}
         <div className="flex justify-between mt-8 pt-6 border-t border-border">
           <Button
             variant="ghost"

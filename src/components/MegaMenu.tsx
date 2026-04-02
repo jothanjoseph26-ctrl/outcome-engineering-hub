@@ -204,7 +204,7 @@ const MenuEntry = ({ item }: { item: MenuLinkItem }) => {
     return (
       <Link
         to={item.to}
-        className="group block rounded-xl border border-border/40 bg-card/40 p-3.5 transition-colors hover:border-gold/30 hover:bg-card/80"
+        className="group block rounded-xl border border-border/60 bg-card/90 p-3.5 transition-colors hover:border-gold/30 hover:bg-card"
       >
         {content}
       </Link>
@@ -214,7 +214,7 @@ const MenuEntry = ({ item }: { item: MenuLinkItem }) => {
   return (
     <a
       href={item.href ?? '#'}
-      className="group block rounded-xl border border-border/40 bg-card/40 p-3.5 transition-colors hover:border-gold/30 hover:bg-card/80"
+      className="group block rounded-xl border border-border/60 bg-card/90 p-3.5 transition-colors hover:border-gold/30 hover:bg-card"
     >
       {content}
     </a>
@@ -227,11 +227,11 @@ export const MegaMenu = ({ activeSection }: MegaMenuProps) => {
   const isSolutions = activeSection === 'Solutions';
 
   return (
-    <div className="absolute inset-x-0 top-full border-b border-border/50 bg-background/88 shadow-2xl backdrop-blur-2xl">
-      <div className="container-lg py-5">
-        <div className="overflow-hidden rounded-2xl border border-border/60 bg-card/65 shadow-[0_20px_80px_-40px_rgba(0,0,0,0.75)]">
+    <div className="absolute inset-x-0 top-full border-b border-border/70 bg-background/96 shadow-[0_28px_90px_-52px_rgba(0,0,0,0.95)] backdrop-blur-xl">
+      <div className="container-lg py-6">
+        <div className="overflow-hidden rounded-2xl border border-border/70 bg-card/95 shadow-[0_28px_90px_-42px_rgba(0,0,0,0.9)]">
           <div className="grid gap-0 lg:grid-cols-[320px_minmax(0,1fr)]">
-            <div className="border-b border-border/40 bg-muted/20 p-5 lg:border-b-0 lg:border-r">
+            <div className="border-b border-border/50 bg-muted/55 p-5 lg:border-b-0 lg:border-r">
               <div className="flex items-start gap-3">
                 <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl border border-gold/20 bg-gold/10 text-gold">
                   <Icon className="h-5 w-5" />
@@ -253,7 +253,7 @@ export const MegaMenu = ({ activeSection }: MegaMenuProps) => {
             <div className="p-5">
               <div className={isSolutions ? 'grid gap-4 md:grid-cols-2 xl:grid-cols-4' : 'grid gap-4 md:grid-cols-2'}>
                 {section.columns.map((column) => (
-                  <div key={column.title} className="rounded-xl border border-border/40 bg-background/35 p-4">
+                  <div key={column.title} className="rounded-xl border border-border/60 bg-background/80 p-4 shadow-[0_14px_34px_-28px_rgba(0,0,0,0.85)]">
                     <h4 className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">
                       {column.title}
                     </h4>
@@ -297,4 +297,3 @@ export const MegaMenu = ({ activeSection }: MegaMenuProps) => {
     </div>
   );
 };
-

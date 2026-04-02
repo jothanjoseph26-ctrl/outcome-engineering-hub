@@ -237,6 +237,250 @@ export type Database = {
         }
         Relationships: []
       }
+      tenants: {
+        Row: {
+          id: string
+          name: string
+          status: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          status?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          status?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      tenant_memberships: {
+        Row: {
+          id: string
+          tenant_id: string
+          user_id: string | null
+          role: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          user_id?: string | null
+          role: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          user_id?: string | null
+          role?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_memberships_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_sessions: {
+        Row: {
+          id: string
+          tenant_id: string | null
+          user_id: string | null
+          channel: string
+          status: string
+          created_at: string
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          tenant_id?: string | null
+          user_id?: string | null
+          channel?: string
+          status?: string
+          created_at?: string
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          tenant_id?: string | null
+          user_id?: string | null
+          channel?: string
+          status?: string
+          created_at?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_sessions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_messages: {
+        Row: {
+          id: string
+          session_id: string
+          role: string
+          content: string
+          redacted_content: string | null
+          token_count: number | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          session_id: string
+          role: string
+          content: string
+          redacted_content?: string | null
+          token_count?: number | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          session_id?: string
+          role?: string
+          content?: string
+          redacted_content?: string | null
+          token_count?: number | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      model_requests: {
+        Row: {
+          id: string
+          session_id: string | null
+          provider: string
+          model: string
+          latency_ms: number
+          status: string
+          prompt_version: string | null
+          error_code: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          session_id?: string | null
+          provider: string
+          model: string
+          latency_ms: number
+          status: string
+          prompt_version?: string | null
+          error_code?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          session_id?: string | null
+          provider?: string
+          model?: string
+          latency_ms?: number
+          status?: string
+          prompt_version?: string | null
+          error_code?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "model_requests_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audit_logs: {
+        Row: {
+          id: string
+          tenant_id: string | null
+          user_id: string | null
+          action: string
+          resource_type: string
+          resource_id: string | null
+          metadata: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id?: string | null
+          user_id?: string | null
+          action: string
+          resource_type: string
+          resource_id?: string | null
+          metadata?: Json
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string | null
+          user_id?: string | null
+          action?: string
+          resource_type?: string
+          resource_id?: string | null
+          metadata?: Json
+          created_at?: string
+        }
+        Relationships: []
+      }
+      knowledge_sources: {
+        Row: {
+          id: string
+          tenant_id: string | null
+          source_type: string
+          title: string
+          status: string
+          checksum: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id?: string | null
+          source_type: string
+          title: string
+          status?: string
+          checksum?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string | null
+          source_type?: string
+          title?: string
+          status?: string
+          checksum?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_sources_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

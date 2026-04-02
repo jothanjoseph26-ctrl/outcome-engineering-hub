@@ -1,8 +1,8 @@
 -- Blog Posts Table
 CREATE TABLE IF NOT EXISTS blog_posts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  title NOT NULL,
-  TEXT slug TEXT UNIQUE NOT NULL,
+  title TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
   content TEXT,
   excerpt TEXT,
   author TEXT DEFAULT 'OutcomeLabs',

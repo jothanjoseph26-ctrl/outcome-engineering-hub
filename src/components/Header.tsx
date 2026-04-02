@@ -90,10 +90,18 @@ export const Header = () => {
 
   return (
     <header className="fixed inset-x-0 top-0 z-50">
+      {activeDropdown ? (
+        <div
+          className="fixed inset-0 bg-background/60 backdrop-blur-[2px]"
+          style={{ top: isScrolled ? '4rem' : '5rem' }}
+          aria-hidden="true"
+        />
+      ) : null}
+
       <nav
         className={cn(
-          'relative border-b border-border/50 bg-background/70 backdrop-blur-2xl transition-all duration-300',
-          isScrolled && 'bg-background/82 shadow-[0_10px_40px_-24px_rgba(0,0,0,0.75)]',
+          'relative border-b border-border/60 bg-background/94 backdrop-blur-xl transition-all duration-300',
+          isScrolled && 'bg-background/96 shadow-[0_18px_48px_-28px_rgba(0,0,0,0.85)]',
         )}
         onMouseLeave={closeDropdownDelayed}
       >
@@ -125,7 +133,7 @@ export const Header = () => {
 
             <div className="hidden lg:flex lg:justify-center">
               <div
-                className="relative flex items-center gap-1 rounded-xl border border-border/40 bg-card/35 p-1"
+                className="relative flex items-center gap-1 rounded-xl border border-border/60 bg-card/85 p-1 shadow-[0_10px_30px_-24px_rgba(0,0,0,0.8)]"
                 onMouseLeave={closeDropdownDelayed}
               >
                 {HEADER_NAV_ORDER.map((label) => {

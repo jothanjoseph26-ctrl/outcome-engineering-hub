@@ -4,15 +4,16 @@ import { ScannerProgress } from '@/components/scanner/ScannerProgress';
 import { ScannerResults } from '@/components/scanner/ScannerResults';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import { clearPersistedScannerToken } from '@/lib/scanner-client';
 
 export type ScanStatus = 'wizard' | 'scanning' | 'results';
 
 const Scanner = () => {
   const [status, setStatus] = useState<ScanStatus>('wizard');
-  const [scanId, setScanId] = useState<string | null>(null);
+  const [scanSession, setScanSession] = useState<{ scanId: string; publicToken: string } | null>(null);
 
-  const handleScanStart = (id: string) => {
-    setScanId(id);
+  const handleScanStart = (scanId: string, publicToken: string) => {
+    setScanSession({ scanId, publicToken });
     setStatus('scanning');
   };
 
@@ -21,7 +22,10 @@ const Scanner = () => {
   };
 
   const handleRestart = () => {
-    setScanId(null);
+    if (scanSession) {
+      clearPersistedScannerToken(scanSession.scanId);
+    }
+    setScanSession(null);
     setStatus('wizard');
   };
 
@@ -33,15 +37,18 @@ const Scanner = () => {
           {status === 'wizard' && (
             <ScannerWizard onScanStart={handleScanStart} />
           )}
-          {status === 'scanning' && scanId && (
+          {status === 'scanning' && scanSession && (
             <ScannerProgress 
-              scanId={scanId} 
+              scanId={scanSession.scanId}
+              publicToken={scanSession.publicToken}
               onComplete={handleScanComplete} 
+              onRestart={handleRestart}
             />
           )}
-          {status === 'results' && scanId && (
+          {status === 'results' && scanSession && (
             <ScannerResults 
-              scanId={scanId} 
+              scanId={scanSession.scanId}
+              publicToken={scanSession.publicToken}
               onRestart={handleRestart} 
             />
           )}
