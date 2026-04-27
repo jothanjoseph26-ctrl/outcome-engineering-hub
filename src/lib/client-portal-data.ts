@@ -500,7 +500,7 @@ export async function loadClientPortalWorkspace(): Promise<{
   workspace: ClientPortalWorkspace;
   source: "live" | "demo";
 }> {
-  if (import.meta.env.MODE === "test") {
+  if (process.env.NODE_ENV === "test") {
     return { workspace: fallbackWorkspace, source: "demo" };
   }
 

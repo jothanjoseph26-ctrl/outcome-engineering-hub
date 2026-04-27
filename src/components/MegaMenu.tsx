@@ -203,7 +203,7 @@ const MenuEntry = ({ item }: { item: MenuLinkItem }) => {
   if (item.to) {
     return (
       <Link
-        to={item.to}
+        href={item.to}
         className="group block rounded-xl border border-border/60 bg-card/90 p-3.5 transition-colors hover:border-gold/30 hover:bg-card"
       >
         {content}
@@ -275,7 +275,7 @@ export const MegaMenu = ({ activeSection }: MegaMenuProps) => {
                 <div className="mt-4 border-t border-border/40 pt-4">
                   {section.footerLink.to ? (
                     <Link
-                      to={section.footerLink.to}
+                      href={section.footerLink.to}
                       className="inline-flex items-center gap-2 text-sm font-semibold text-gold transition-colors hover:text-gold-glow"
                     >
                       {section.footerLink.label} <ArrowRight className="h-4 w-4" />
