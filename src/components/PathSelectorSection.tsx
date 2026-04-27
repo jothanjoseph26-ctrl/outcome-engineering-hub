@@ -1,52 +1,59 @@
+'use client';
+
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Briefcase, Compass, Vote } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import revenueGrowth from '@/assets/revenue-growth.jpg';
 import marketDominance from '@/assets/market-dominance.jpg';
 import electoralVictory from '@/assets/electoral-victory.jpg';
+import { FunnelPrequalifierModal } from '@/components/funnels/FunnelPrequalifierModal';
+import type { FunnelId } from '@/data/conversionFunnels';
 
 const paths = [
   {
+    id: 'drive-revenue' as FunnelId,
     icon: Briefcase,
-    title: 'Drive Revenue',
+    title: 'Engineer My Revenue',
     subtitle: 'Revenue Growth',
-    description: 'For businesses that need sales, not likes.',
+    description: 'For operators who know revenue is leaking somewhere in the pipeline.',
     audience: 'E-commerce, SaaS, B2B Services',
     features: [
-      'Conversion systems',
-      'Performance advertising',
-      'WhatsApp sales automation',
+      'Pipeline instrumentation',
+      'Leak impact scoring',
+      'Trust and checkout systems',
       'SEO engineering',
       'Revenue attribution',
     ],
+    signal: '"My business is bleeding. Show me where."',
     cta: 'Engineer My Revenue',
     color: 'gold',
     image: revenueGrowth,
-    link: '/whatsapp',
   },
   {
+    id: 'own-your-market' as FunnelId,
     icon: Compass,
-    title: 'Own Your Market',
+    title: 'Dominate My Market',
     subtitle: 'Market Dominance',
-    description: 'For brands that need attention and authority.',
+    description: 'For brands that are visible, but not category-defining enough.',
     audience: 'Corporates, Startups, Personal Brands',
     features: [
-      'Data-driven social strategy',
-      'Community engineering',
-      'Influencer activation',
-      'Reputation management',
+      'Signal velocity audit',
+      'Authority gap mapping',
+      'API distribution system',
+      'Competitor intelligence',
       'Brand intelligence',
     ],
+    signal: '"We exist, but we are not owning enough attention."',
     cta: 'Dominate My Market',
     color: 'teal',
     image: marketDominance,
-    link: '/truereach',
   },
   {
+    id: 'win-elections' as FunnelId,
     icon: Vote,
-    title: 'Win Elections',
+    title: 'Power My Campaign',
     subtitle: 'Electoral Victory',
-    description: 'For political leaders who need digital power.',
+    description: 'For campaigns that need infrastructure, intelligence, and operational control.',
     audience: 'Gubernatorial, Senate, House campaigns',
     features: [
       'Digital war room systems',
@@ -55,14 +62,16 @@ const paths = [
       'Targeted messaging',
       'Rapid response ops',
     ],
+    signal: '"I need digital infrastructure that wins elections."',
     cta: 'Power My Campaign',
     color: 'success',
     image: electoralVictory,
-    link: '/truereach',
   },
 ];
 
 export const PathSelectorSection = () => {
+  const [activeFunnel, setActiveFunnel] = useState<FunnelId | null>(null);
+
   return (
     <section className="section-padding bg-background relative overflow-hidden">
       {/* Background accent */}
@@ -80,7 +89,7 @@ export const PathSelectorSection = () => {
             Choose Your <span className="text-gradient-gold">Outcome</span>
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Every business has unique goals. We engineer systems tailored to your specific path to growth.
+            This is the homepage intent router. Each button launches a distinct diagnostic pathway instead of dumping high-intent visitors into a generic service page.
           </p>
         </div>
 
@@ -129,6 +138,9 @@ export const PathSelectorSection = () => {
                 <p className="text-sm text-muted-foreground/80 mb-6">
                   Perfect for: <span className="text-foreground">{path.audience}</span>
                 </p>
+                <div className="mb-6 rounded-xl border border-border/50 bg-background/40 px-4 py-3 text-sm italic text-muted-foreground">
+                  {path.signal}
+                </div>
               </div>
 
               {/* Features */}
@@ -149,12 +161,12 @@ export const PathSelectorSection = () => {
               <Button 
                 variant={path.color === 'gold' ? 'hero' : path.color === 'teal' ? 'teal' : 'default'}
                 className="w-full gap-2"
-                asChild
+                onClick={() => setActiveFunnel(path.id)}
               >
-                <Link to={path.link}>
+                <span>
                   {path.cta}
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </Link>
+                </span>
               </Button>
 
               {/* Hover border glow */}
@@ -167,6 +179,16 @@ export const PathSelectorSection = () => {
           ))}
         </div>
       </div>
+
+      <FunnelPrequalifierModal
+        funnelId={activeFunnel}
+        open={activeFunnel !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setActiveFunnel(null);
+          }
+        }}
+      />
     </section>
   );
 };

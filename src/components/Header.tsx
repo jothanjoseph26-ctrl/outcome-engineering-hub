@@ -1,5 +1,7 @@
+'use client';
+
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { ArrowRight, ChevronDown, Menu, Search, X } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -113,7 +115,7 @@ export const Header = () => {
             )}
           >
             <Link
-              to="/"
+              href="/"
               className="group flex min-w-0 items-center gap-3"
               onMouseEnter={closeDropdown}
             >
@@ -168,13 +170,13 @@ export const Header = () => {
 
             <div className="hidden items-center justify-end gap-2 lg:flex">
               <Button variant="glass" size="icon" asChild>
-                <Link to="/scanner" aria-label="Run Free Audit">
+                <Link href="/scanner" aria-label="Run Free Audit">
                   <Search className="h-4 w-4" />
                 </Link>
               </Button>
 
               <Button variant="heroOutline" size="sm" asChild>
-                <Link to="/portal">Client Login</Link>
+                <Link href="/portal">Client Login</Link>
               </Button>
 
               <Button
@@ -190,7 +192,7 @@ export const Header = () => {
 
             <div className="flex items-center justify-end gap-2 lg:hidden">
               <Button variant="glass" size="icon" asChild>
-                <Link to="/scanner" aria-label="Run Free Audit">
+                <Link href="/scanner" aria-label="Run Free Audit">
                   <Search className="h-4 w-4" />
                 </Link>
               </Button>
@@ -292,7 +294,7 @@ export const Header = () => {
                                     return (
                                       <Link
                                         key={item.label}
-                                        to={item.to}
+                                        href={item.to}
                                         className="block rounded-lg px-2.5 py-2 transition-colors hover:bg-muted/50"
                                         onClick={() => setMobileMenuOpen(false)}
                                       >
@@ -319,7 +321,7 @@ export const Header = () => {
                           {section.footerLink ? (
                             section.footerLink.to ? (
                               <Link
-                                to={section.footerLink.to}
+                                href={section.footerLink.to}
                                 className="inline-flex items-center gap-2 px-2 py-1 text-sm font-semibold text-gold"
                                 onClick={() => setMobileMenuOpen(false)}
                               >
@@ -356,12 +358,12 @@ export const Header = () => {
               </Button>
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <Button variant="heroOutline" asChild>
-                  <Link to="/portal" onClick={() => setMobileMenuOpen(false)}>
+                  <Link href="/portal" onClick={() => setMobileMenuOpen(false)}>
                     Client Login
                   </Link>
                 </Button>
                 <Button variant="glass" asChild>
-                  <Link to="/scanner" onClick={() => setMobileMenuOpen(false)}>
+                  <Link href="/scanner" onClick={() => setMobileMenuOpen(false)}>
                     Run Free Audit
                   </Link>
                 </Button>

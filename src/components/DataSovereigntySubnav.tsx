@@ -1,8 +1,9 @@
-import { Link, useLocation } from 'react-router-dom';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { dataSovereigntyPages } from '@/data/dataSovereigntyPages';
 
 export const DataSovereigntySubnav = () => {
-  const location = useLocation();
+  const pathname = usePathname();
 
   return (
     <nav className="sticky top-16 z-40 border-y border-border/70 bg-card/90 backdrop-blur-xl">
@@ -11,7 +12,7 @@ export const DataSovereigntySubnav = () => {
           <Link
             to="/solutions/data-sovereignty"
             className={`whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
-              location.pathname === '/solutions/data-sovereignty'
+              pathname === '/solutions/data-sovereignty'
                 ? 'border-gold/50 bg-gold/15 text-gold'
                 : 'border-border/60 bg-muted/30 text-muted-foreground hover:border-gold/35 hover:text-foreground'
             }`}
@@ -20,7 +21,7 @@ export const DataSovereigntySubnav = () => {
           </Link>
           {dataSovereigntyPages.map((item) => {
             const href = `/solutions/data-sovereignty/${item.slug}`;
-            const active = location.pathname === href;
+            const active = pathname === href;
             return (
               <Link
                 key={item.slug}

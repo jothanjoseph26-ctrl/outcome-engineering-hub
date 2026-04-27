@@ -10,7 +10,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 
 const edgePillars = [
   {
@@ -218,12 +218,12 @@ export const TechnologySection = () => {
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Button variant="hero" className="gap-2" asChild>
-              <Link to="/scanner">
+              <Link href="/scanner">
                 Start Infrastructure Audit
               </Link>
             </Button>
             <Button variant="heroOutline" className="gap-2" asChild>
-              <Link to="/technical-architecture">
+              <Link href="/technical-architecture">
                 See Technical Architecture
               </Link>
             </Button>

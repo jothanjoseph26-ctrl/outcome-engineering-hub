@@ -1,5 +1,7 @@
+'use client';
+
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { 
   Database, 
   Cpu, 
@@ -282,7 +284,7 @@ export const HeroSection = () => {
             </p>
             
             <div className="cta-group">
-              <Link to="/scanner" className="cta-button">
+              <Link href="/scanner" className="cta-button">
                 Start Free Technical Audit <ArrowRight size={18} />
               </Link>
               <button className="cta-secondary" onClick={() => scrollToSection('systems')}>

@@ -1,3 +1,5 @@
+'use client';
+
 import { motion } from 'framer-motion';
 import { Activity, TrendingUp, DollarSign, Clock, Zap, Users, Target, BarChart3, ArrowUpRight, Radio } from 'lucide-react';
 import { AnimatedCounter } from './AnimatedCounter';

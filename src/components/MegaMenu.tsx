@@ -1,5 +1,5 @@
 import { ArrowRight, Blocks, Building2, FileSearch, Library, ShieldCheck } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 
 export type HeaderSectionId = 'Solutions' | 'Platform' | 'Research' | 'Enterprise' | 'Resources';
 

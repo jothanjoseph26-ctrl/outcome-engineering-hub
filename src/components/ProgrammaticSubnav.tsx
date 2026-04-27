@@ -1,4 +1,5 @@
-import { Link, useLocation } from 'react-router-dom';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 const items = [
   {
@@ -20,14 +21,14 @@ const items = [
 ];
 
 export const ProgrammaticSubnav = () => {
-  const location = useLocation();
+  const pathname = usePathname();
 
   return (
     <nav className="sticky top-16 z-40 border-y border-border/70 bg-card/90 backdrop-blur-xl">
       <div className="container-lg py-3">
         <div className="flex gap-2 overflow-x-auto">
           {items.map((item) => {
-            const active = location.pathname === item.href;
+            const active = pathname === item.href;
             return (
               <Link
                 key={item.href}

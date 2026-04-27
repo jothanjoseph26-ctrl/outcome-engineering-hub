@@ -29,6 +29,9 @@ import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import ProgrammaticContent from "./pages/ProgrammaticContent";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import DriveRevenue from "./pages/DriveRevenue";
+import OwnYourMarket from "./pages/OwnYourMarket";
+import WinElections from "./pages/WinElections";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +49,9 @@ const App = () => (
         <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/drive-revenue" element={<DriveRevenue />} />
+          <Route path="/own-your-market" element={<OwnYourMarket />} />
+          <Route path="/win-elections" element={<WinElections />} />
           <Route path="/scanner" element={<Scanner />} />
           <Route path="/truereach" element={<Truereach />} />
           <Route path="/whatsapp" element={<WhatsAppEngineering />} />

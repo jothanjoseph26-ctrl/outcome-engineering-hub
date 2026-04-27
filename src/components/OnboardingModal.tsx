@@ -1,6 +1,8 @@
+'use client';
+
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import {
   Dialog,
   DialogContent,
@@ -110,7 +112,7 @@ const budgets = [
 ];
 
 export const OnboardingModal = ({ open, onOpenChange }: OnboardingModalProps) => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [step, setStep] = useState(1);
   const [outcome, setOutcome] = useState<Outcome>(null);
   const [urgency, setUrgency] = useState<Urgency>(null);
@@ -149,11 +151,11 @@ export const OnboardingModal = ({ open, onOpenChange }: OnboardingModalProps) =>
       window.open('https://calendly.com', '_blank');
     } else if (intent === 'medium') {
       // Route to scanner
-      navigate('/scanner');
+      router.push('/scanner');
     } else {
       // Route to toolkit download
       // For now, we'll show a toast or navigate to resources
-      navigate('/scanner');
+      router.push('/scanner');
     }
   };
 

@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Zap, Phone, Mail, MessageSquare, Shield, Clock, Target } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 
 export const CTASection = () => {
   return (
@@ -37,14 +37,14 @@ export const CTASection = () => {
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row justify-center gap-4 mb-12">
             <Button variant="hero" size="xl" className="gap-2" asChild>
-              <Link to="/scanner">
+              <Link href="/scanner">
                 <Zap className="w-5 h-5" />
                 Start Free Revenue Audit
                 <ArrowRight className="w-5 h-5" />
               </Link>
             </Button>
             <Button variant="heroOutline" size="xl" className="gap-2" asChild>
-              <Link to="/scanner">
+              <Link href="/scanner">
                 <Phone className="w-5 h-5" />
                 Book 30-Min Strategy Call
               </Link>

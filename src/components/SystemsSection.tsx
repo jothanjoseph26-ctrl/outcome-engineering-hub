@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { AnimatedCounter } from '@/components/AnimatedCounter';
 import { ArrowRight, Users, MessageSquare, Search, Zap } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import dashboardPreview from '@/assets/dashboard-preview.jpg';
 import whatsappSystem from '@/assets/whatsapp-system.jpg';
 
@@ -149,7 +149,7 @@ export const SystemsSection = () => {
                     className="gap-2"
                     asChild
                   >
-                    <Link to={system.link}>
+                    <Link href={system.link}>
                       Inspect {system.title}
                       <ArrowRight className="w-4 h-4" />
                     </Link>
