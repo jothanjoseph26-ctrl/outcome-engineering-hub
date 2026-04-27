@@ -45,9 +45,9 @@ export const MEGA_MENU_SECTIONS: Record<HeaderSectionId, MegaMenuSection> = {
       {
         title: 'Revenue Engineering',
         items: [
-          { label: 'WhatsApp Sales Engineering', description: 'Pipeline automation and sales flow design', to: '/whatsapp' },
-          { label: 'Conversion Engineering', description: 'Funnel instrumentation and conversion optimization', href: '#' },
-          { label: 'Revenue Leak Scanner', description: 'Identify waste, friction, and untracked loss', to: '/scanner', badge: 'Free' },
+          { label: 'SEO Engineering', description: 'Programmatic content + authority systems', to: '/solutions/seo-engineering' },
+          { label: 'Conversion Engineering', description: 'Funnel instrumentation + tracking', to: '/solutions/conversion-engineering' },
+          { label: 'WhatsApp Sales System', description: 'Pipeline automation and sales flow', to: '/solutions/whatsapp-sales-system' },
         ],
       },
       {
@@ -75,7 +75,7 @@ export const MEGA_MENU_SECTIONS: Record<HeaderSectionId, MegaMenuSection> = {
         ],
       },
     ],
-    footerLink: { label: 'Explore All Solutions', href: '#' },
+    footerLink: { label: 'View All Solutions', to: '/services' },
   },
   Platform: {
     eyebrow: 'Platform Operations',

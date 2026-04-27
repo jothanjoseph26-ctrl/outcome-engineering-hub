@@ -2,6 +2,19 @@ import type { MetadataRoute } from 'next';
 
 const BASE_URL = 'https://outcomelabs.com';
 
+const caseStudySlugs = [
+  'ecommerce-conversion-4x',
+  'b2b-saas-organic-growth-217',
+  'whatsapp-lead-qualification',
+];
+
+const blogSlugs = [
+  'why-your-spa-is-invisible-to-google',
+  'server-side-tracking-complete-guide',
+  'programmatic-seo-keyword-architecture',
+  'whatsapp-lead-qualification-system',
+];
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
 
@@ -18,5 +31,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/scanner`, lastModified: now, changeFrequency: 'monthly', priority: 0.75 },
   ];
 
-  return staticRoutes;
+  const caseStudyRoutes: MetadataRoute.Sitemap = caseStudySlugs.map((slug) => ({
+    url: `${BASE_URL}/case-studies/${slug}`,
+    lastModified: now,
+    changeFrequency: 'monthly',
+    priority: 0.75,
+  }));
+
+  const blogRoutes: MetadataRoute.Sitemap = blogSlugs.map((slug) => ({
+    url: `${BASE_URL}/blog/${slug}`,
+    lastModified: now,
+    changeFrequency: 'monthly',
+    priority: 0.7,
+  }));
+
+  return [...staticRoutes, ...caseStudyRoutes, ...blogRoutes];
 }

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'next/link';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
   ArrowRight,
@@ -436,7 +436,7 @@ export const DiagnosticFunnelPage = ({ funnelId }: { funnelId: FunnelId }) => {
                         )}
                       </Button>
                       <Button variant="heroOutline" asChild className="w-full">
-                        <Link to="/">Back to Homepage Router</Link>
+                        <Link href="/">Back to Homepage Router</Link>
                       </Button>
                     </div>
 

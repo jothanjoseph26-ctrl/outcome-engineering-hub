@@ -8,6 +8,8 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://outcomelabs.com/blog' },
 };
 
+export const revalidate = 86400;
+
 const posts = [
   {
     slug: 'why-your-spa-is-invisible-to-google',

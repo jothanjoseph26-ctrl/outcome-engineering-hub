@@ -52,6 +52,32 @@ export const metadata: Metadata = {
   },
 };
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Outcome Labs",
+  url: "https://outcomelabs.com",
+  logo: "https://outcomelabs.com/logo.png",
+  description: "Revenue engineering for growth companies. We build SEO systems, conversion funnels, and automation that generate qualified leads on autopilot.",
+  sameAs: [
+    "https://twitter.com/outcomelabs",
+    "https://linkedin.com/company/outcomelabs",
+  ],
+  contactPoint: {
+    "@type": "ContactPoint",
+    telephone: "+1-555-123-4567",
+    contactType: "sales",
+    availableLanguage: "English",
+  },
+  areaServed: "Worldwide",
+  serviceType: [
+    "SEO Engineering",
+    "Conversion Engineering",
+    "Revenue Operations",
+    "Marketing Automation",
+  ],
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -59,6 +85,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
         <Providers>{children}</Providers>
       </body>

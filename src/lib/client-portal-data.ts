@@ -1,6 +1,32 @@
 import { formatDistanceToNowStrict, format as formatDate } from "date-fns";
 
 import { supabase } from "@/integrations/supabase/client";
+
+// DB row shapes — columns used in this file only; extend if new selects are added
+type DbProject = {
+  id: string;
+  tenant_id: string;
+  name: string;
+  summary: string;
+  workspace_label: string | null;
+  launch_gate_title: string | null;
+  launch_gate_summary: string | null;
+  due_date: string | null;
+  health_score: number | null;
+  budget_status: string | null;
+};
+type DbWorkstream = { id: string; name: string; owner_name: string; progress: number | null; status: string; due_date: string | null; summary: string | null };
+type DbApproval   = { id: string; title: string; owner_name: string; due_date: string | null; status: string; detail: string | null };
+type DbRequest    = { id: string; title: string; requester_name: string; priority: string; impact_summary: string | null; stage: string | null };
+type DbDecision   = { id: string; title: string; owner_name: string; created_at: string };
+type DbActivity   = { id: string; actor_name: string; action: string; context: string; created_at: string };
+type DbArtifact   = { id: string; name: string; file_type: string | null; updated_at: string; file_size_label: string | null };
+type DbRisk       = { id: string; title: string; severity: string | null; mitigation: string | null };
+
+// Supabase client cast — the portal tables are outside the generated Database type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db = supabase as any;
+
 import type {
   ApprovalStatus,
   ClientPortalWorkspace,
@@ -230,7 +256,7 @@ function approvalStatusFromDb(value: string): ApprovalStatus {
 function calculateMetrics(
   workstreams: PortalWorkstream[],
   approvals: PortalApproval[],
-  project: any,
+  project: DbProject,
 ): PortalMetric[] {
   const completed = workstreams.filter((item) => item.progress >= 100).length;
   const averageProgress =
@@ -264,9 +290,7 @@ function calculateMetrics(
 }
 
 async function fetchLiveWorkspace(): Promise<ClientPortalWorkspace | null> {
-  const client = supabase as any;
-
-  const { data: project, error: projectError } = await client
+  const { data: project, error: projectError } = await db
     .from("client_projects")
     .select("*")
     .order("created_at", { ascending: false })
@@ -288,16 +312,16 @@ async function fetchLiveWorkspace(): Promise<ClientPortalWorkspace | null> {
     { data: artifacts },
     { data: risks },
   ] = await Promise.all([
-    client.from("project_workstreams").select("*").eq("project_id", projectId).order("sort_order", { ascending: true }),
-    client.from("project_approvals").select("*").eq("project_id", projectId).order("due_date", { ascending: true }),
-    client.from("project_requests").select("*").eq("project_id", projectId).order("created_at", { ascending: false }),
-    client.from("project_decisions").select("*").eq("project_id", projectId).order("created_at", { ascending: false }),
-    client.from("project_activities").select("*").eq("project_id", projectId).order("created_at", { ascending: false }).limit(8),
-    client.from("project_artifacts").select("*").eq("project_id", projectId).order("updated_at", { ascending: false }),
-    client.from("project_risks").select("*").eq("project_id", projectId).order("created_at", { ascending: false }),
+    db.from("project_workstreams").select("*").eq("project_id", projectId).order("sort_order", { ascending: true }),
+    db.from("project_approvals").select("*").eq("project_id", projectId).order("due_date", { ascending: true }),
+    db.from("project_requests").select("*").eq("project_id", projectId).order("created_at", { ascending: false }),
+    db.from("project_decisions").select("*").eq("project_id", projectId).order("created_at", { ascending: false }),
+    db.from("project_activities").select("*").eq("project_id", projectId).order("created_at", { ascending: false }).limit(8),
+    db.from("project_artifacts").select("*").eq("project_id", projectId).order("updated_at", { ascending: false }),
+    db.from("project_risks").select("*").eq("project_id", projectId).order("created_at", { ascending: false }),
   ]);
 
-  const mappedWorkstreams: PortalWorkstream[] = (workstreams ?? []).map((item: any) => ({
+  const mappedWorkstreams: PortalWorkstream[] = ((workstreams ?? []) as DbWorkstream[]).map((item) => ({
     id: item.id,
     name: item.name,
     owner: item.owner_name,
@@ -307,7 +331,7 @@ async function fetchLiveWorkspace(): Promise<ClientPortalWorkspace | null> {
     summary: item.summary,
   }));
 
-  const mappedApprovals: PortalApproval[] = (approvals ?? []).map((item: any) => ({
+  const mappedApprovals: PortalApproval[] = ((approvals ?? []) as DbApproval[]).map((item) => ({
     id: item.id,
     title: item.title,
     owner: item.owner_name,
@@ -316,7 +340,7 @@ async function fetchLiveWorkspace(): Promise<ClientPortalWorkspace | null> {
     detail: item.detail,
   }));
 
-  const mappedRequests: PortalRequest[] = (requests ?? []).map((item: any) => ({
+  const mappedRequests: PortalRequest[] = ((requests ?? []) as DbRequest[]).map((item) => ({
     id: item.id,
     title: item.title,
     requester: item.requester_name,
@@ -325,14 +349,14 @@ async function fetchLiveWorkspace(): Promise<ClientPortalWorkspace | null> {
     stage: item.stage,
   }));
 
-  const mappedDecisions: PortalDecision[] = (decisions ?? []).map((item: any) => ({
+  const mappedDecisions: PortalDecision[] = ((decisions ?? []) as DbDecision[]).map((item) => ({
     id: item.id,
     title: item.title,
     owner: item.owner_name,
     time: formatPortalTimeAgo(item.created_at),
   }));
 
-  const mappedActivity: PortalActivity[] = (activity ?? []).map((item: any) => ({
+  const mappedActivity: PortalActivity[] = ((activity ?? []) as DbActivity[]).map((item) => ({
     id: item.id,
     actor: item.actor_name,
     action: item.action,
@@ -340,7 +364,7 @@ async function fetchLiveWorkspace(): Promise<ClientPortalWorkspace | null> {
     time: formatPortalTimeAgo(item.created_at),
   }));
 
-  const mappedArtifacts: PortalArtifact[] = (artifacts ?? []).map((item: any) => ({
+  const mappedArtifacts: PortalArtifact[] = ((artifacts ?? []) as DbArtifact[]).map((item) => ({
     id: item.id,
     name: item.name,
     type: item.file_type,
@@ -348,7 +372,7 @@ async function fetchLiveWorkspace(): Promise<ClientPortalWorkspace | null> {
     size: item.file_size_label,
   }));
 
-  const mappedRisks: PortalRisk[] = (risks ?? []).map((item: any) => ({
+  const mappedRisks: PortalRisk[] = ((risks ?? []) as DbRisk[]).map((item) => ({
     id: item.id,
     title: item.title,
     severity: item.severity,
@@ -394,7 +418,7 @@ export async function signOutPortal() {
 }
 
 async function logPortalActivity(projectId: string, tenantId: string, actorName: string, action: string, context: string) {
-  const client = supabase as any;
+  const client = db;
   const { error } = await client.from("project_activities").insert({
     project_id: projectId,
     tenant_id: tenantId,
@@ -411,7 +435,7 @@ export async function approveReleaseAction(workspace: ClientPortalWorkspace, act
     throw new Error("Workspace is not connected to a live project.");
   }
 
-  const client = supabase as any;
+  const client = db;
   const pendingApproval = workspace.approvals.find((item) => item.status === "Pending");
 
   if (!pendingApproval) {
@@ -450,7 +474,7 @@ export async function createPortalRequestAction(
     throw new Error("Workspace is not connected to a live project.");
   }
 
-  const client = supabase as any;
+  const client = db;
   const { error } = await client.from("project_requests").insert({
     project_id: workspace.projectId,
     tenant_id: workspace.tenantId,
