@@ -3,11 +3,12 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Briefcase, Compass, Vote } from 'lucide-react';
-import revenueGrowth from '@/assets/revenue-growth.jpg';
-import marketDominance from '@/assets/market-dominance.jpg';
-import electoralVictory from '@/assets/electoral-victory.jpg';
 import { FunnelPrequalifierModal } from '@/components/funnels/FunnelPrequalifierModal';
 import type { FunnelId } from '@/data/conversionFunnels';
+
+const revenueGrowth = '/images/revenue-growth.jpg';
+const marketDominance = '/images/market-dominance.jpg';
+const electoralVictory = '/images/electoral-victory.jpg';
 
 const paths = [
   {

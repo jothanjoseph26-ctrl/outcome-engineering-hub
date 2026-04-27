@@ -2,8 +2,9 @@ import { Button } from '@/components/ui/button';
 import { AnimatedCounter } from '@/components/AnimatedCounter';
 import { ArrowRight, Users, MessageSquare, Search, Zap } from 'lucide-react';
 import Link from 'next/link';
-import dashboardPreview from '@/assets/dashboard-preview.jpg';
-import whatsappSystem from '@/assets/whatsapp-system.jpg';
+
+const dashboardPreview = '/images/dashboard-preview.jpg';
+const whatsappSystem = '/images/whatsapp-system.jpg';
 
 const systems = [
   {
