@@ -18,6 +18,7 @@ import { DashboardPreview } from '@/components/DashboardPreview';
 import { ComparisonTool } from '@/components/ComparisonTool';
 import { LiveChatWidget } from '@/components/LiveChatWidget';
 import { ResourceHub } from '@/components/ResourceHub';
+import { ScrollReveal } from '@/components/ScrollReveal';
 
 export const metadata: Metadata = {
   title: 'Outcome Labs | Revenue Engineering for Growth Companies',
@@ -51,24 +52,73 @@ export default function HomePage() {
       </div>
 
       <HeroSection />
-      <PositioningSection />
-      <PathSelectorSection />
-      <ComparisonSection />
+      
+      <ScrollReveal>
+        <PositioningSection />
+      </ScrollReveal>
+      
+      <ScrollReveal>
+        <PathSelectorSection />
+      </ScrollReveal>
+      
+      <ScrollReveal>
+        <ComparisonSection />
+      </ScrollReveal>
+      
       <div id="systems">
-        <SystemsSection />
+        <ScrollReveal>
+          <SystemsSection />
+        </ScrollReveal>
       </div>
-      <TechnologySection />
-      <OutcomeBrainSection />
-      <ResultsSection />
-      <CaseStudyGallery />
-      <DashboardPreview />
-      <ComparisonTool />
-      <ROICalculator />
-      <ResourceHub />
-      <AudienceSection />
-      <ProcessSection />
-      <PricingSection />
-      <CTASection />
+      
+      <ScrollReveal>
+        <TechnologySection />
+      </ScrollReveal>
+      
+      <ScrollReveal>
+        <OutcomeBrainSection />
+      </ScrollReveal>
+      
+      <ScrollReveal>
+        <ResultsSection />
+      </ScrollReveal>
+      
+      <ScrollReveal>
+        <CaseStudyGallery />
+      </ScrollReveal>
+      
+      <ScrollReveal>
+        <DashboardPreview />
+      </ScrollReveal>
+      
+      <ScrollReveal>
+        <ComparisonTool />
+      </ScrollReveal>
+      
+      <ScrollReveal>
+        <ROICalculator />
+      </ScrollReveal>
+      
+      <ScrollReveal>
+        <ResourceHub />
+      </ScrollReveal>
+      
+      <ScrollReveal>
+        <AudienceSection />
+      </ScrollReveal>
+      
+      <ScrollReveal>
+        <ProcessSection />
+      </ScrollReveal>
+      
+      <ScrollReveal>
+        <PricingSection />
+      </ScrollReveal>
+      
+      <ScrollReveal>
+        <CTASection />
+      </ScrollReveal>
+      
       <ScrollToTop />
       <LiveChatWidget />
     </>

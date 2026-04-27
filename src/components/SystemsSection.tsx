@@ -1,9 +1,13 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
 import { AnimatedCounter } from '@/components/AnimatedCounter';
 import { ArrowRight, Users, MessageSquare, Search, Zap } from 'lucide-react';
 import Link from 'next/link';
 import dashboardPreview from '@/assets/dashboard-preview.jpg';
 import whatsappSystem from '@/assets/whatsapp-system.jpg';
+import { motion } from 'framer-motion';
+import { useRef, useState } from 'react';
 
 const systems = [
   {
@@ -29,7 +33,7 @@ const systems = [
   },
   {
     id: 'whatsapp',
-    title: 'WhatsApp Sales Engineering',
+    title: 'WhatsApp Sales System',
     subtitle: 'Revenue Infrastructure',
     description: 'Turn WhatsApp from inbox chaos into revenue infrastructure. Automated lead qualification, CRM sync, smart broadcasts, and conversion funnel tracking.',
     features: [
@@ -46,7 +50,7 @@ const systems = [
     icon: MessageSquare,
     color: 'teal',
     image: whatsappSystem,
-    link: '/whatsapp',
+    link: '/solutions/whatsapp-sales-system',
   },
   {
     id: 'seo',
@@ -71,128 +75,192 @@ const systems = [
   },
 ];
 
+function SystemCard({ system, index }: { system: typeof systems[0]; index: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [rotateX, setRotateX] = useState(0);
+  const [rotateY, setRotateY] = useState(0);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    setRotateX((y - centerY) / 20);
+    setRotateY((centerX - x) / 20);
+  };
+
+  const handleMouseLeave = () => {
+    setRotateX(0);
+    setRotateY(0);
+  };
+
+  const colorMap = {
+    gold: {
+      bg: 'bg-gold/20',
+      text: 'text-gold',
+      border: 'border-gold/30',
+      glow: 'shadow-[0_0_40px_-10px_hsl(var(--gold)/0.4)]',
+      gradient: 'from-gold/5 to-gold/10',
+      metricBg: 'bg-gold/10',
+    },
+    teal: {
+      bg: 'bg-teal/20',
+      text: 'text-teal',
+      border: 'border-teal/30',
+      glow: 'shadow-[0_0_40px_-10px_hsl(var(--teal)/0.4)]',
+      gradient: 'from-teal/5 to-teal/10',
+      metricBg: 'bg-teal/10',
+    },
+    success: {
+      bg: 'bg-success/20',
+      text: 'text-success',
+      border: 'border-success/30',
+      glow: 'shadow-[0_0_40px_-10px_hsl(var(--success)/0.4)]',
+      gradient: 'from-success/5 to-success/10',
+      metricBg: 'bg-success/10',
+    },
+  };
+
+  const colors = colorMap[system.color as keyof typeof colorMap];
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-50px' }}
+      transition={{ duration: 0.7, delay: index * 0.15 }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        transform: `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
+        transformStyle: 'preserve-3d',
+      }}
+      className={`glass-card rounded-2xl p-8 lg:p-10 transition-all duration-300 ${
+        index % 2 === 1 ? 'lg:ml-12' : 'lg:mr-12'
+      } hover:${colors.border} ${colors.glow} hover:scale-[1.01]`}
+    >
+      <div className="grid lg:grid-cols-2 gap-8 items-center">
+        {/* Content */}
+        <div className={index % 2 === 1 ? 'lg:order-2' : ''}>
+          <div className="flex items-center gap-3 mb-4">
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${colors.bg}`}>
+              <system.icon className={`w-6 h-6 ${colors.text}`} />
+            </div>
+            <div>
+              <h3 className="text-2xl font-display font-bold text-foreground">{system.title}</h3>
+              <span className="text-sm text-muted-foreground">{system.subtitle}</span>
+            </div>
+          </div>
+
+          <p className="text-muted-foreground mb-6">
+            {system.description}
+          </p>
+
+          <ul className="space-y-2 mb-8">
+            {system.features.map((feature) => (
+              <li key={feature} className="flex items-center gap-3 text-foreground">
+                <span className={`w-1.5 h-1.5 rounded-full ${colors.text.replace('text-', 'bg-')}`} />
+                {feature}
+              </li>
+            ))}
+          </ul>
+
+          <Button 
+            variant={system.color === 'gold' ? 'hero' : system.color === 'teal' ? 'teal' : 'default'}
+            className="gap-2 group"
+            asChild
+          >
+            <Link href={system.link}>
+              Inspect {system.title}
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </Button>
+        </div>
+
+        {/* Image + Metrics */}
+        <div className={`space-y-4 ${index % 2 === 1 ? 'lg:order-1' : ''}`}>
+          {/* System Preview Image */}
+          <div className={`relative rounded-xl overflow-hidden border ${colors.border} bg-gradient-to-br ${colors.gradient}`}>
+            <img 
+              src={system.image} 
+              alt={`${system.title} preview`}
+              className="w-full h-48 object-cover opacity-80"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent" />
+          </div>
+          
+          {/* Metrics */}
+          <div className="grid grid-cols-3 gap-3">
+            {system.metrics.map((metric) => (
+              <div 
+                key={metric.label}
+                className={`${colors.metricBg} rounded-xl p-4 text-center border ${colors.border} backdrop-blur-sm`}
+              >
+                <div className={`text-2xl font-mono font-bold ${colors.text}`}>
+                  <AnimatedCounter 
+                    end={metric.value} 
+                    suffix={metric.suffix || ''} 
+                    decimals={metric.decimals || 0}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">{metric.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 export const SystemsSection = () => {
   return (
     <section className="section-padding bg-card relative overflow-hidden noise">
-      {/* Background gradient */}
-      <div 
+      {/* Animated Background gradient */}
+      <motion.div 
         className="absolute inset-0 opacity-30"
-        style={{
-          background: 'radial-gradient(ellipse at bottom, hsl(var(--gold) / 0.1) 0%, transparent 60%)',
+        animate={{
+          background: [
+            'radial-gradient(ellipse at 20% 50%, hsl(var(--gold) / 0.1) 0%, transparent 60%)',
+            'radial-gradient(ellipse at 80% 50%, hsl(var(--gold) / 0.1) 0%, transparent 60%)',
+            'radial-gradient(ellipse at 20% 50%, hsl(var(--gold) / 0.1) 0%, transparent 60%)',
+          ],
         }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
       />
 
       <div className="container-lg relative z-10">
         {/* Section header */}
-        <div className="text-center mb-16">
-          <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center mb-16"
+        >
+          <motion.span 
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6"
+          >
             <Zap className="w-4 h-4 text-gold" />
             <span className="text-sm font-medium text-muted-foreground">Proprietary Technology</span>
-          </span>
+          </motion.span>
           <h2 className="text-4xl md:text-5xl font-display font-bold tracking-tight mb-4">
             The Engines Behind <span className="text-gradient-gold">Our Results</span>
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Other agencies rent tools. We build the systems we run on.
           </p>
-        </div>
+        </motion.div>
 
         {/* Systems grid */}
         <div className="space-y-8">
           {systems.map((system, index) => (
-            <div 
-              key={system.id}
-              className={`glass-card rounded-2xl p-8 lg:p-10 ${
-                index % 2 === 1 ? 'lg:ml-12' : 'lg:mr-12'
-              }`}
-            >
-              <div className="grid lg:grid-cols-2 gap-8 items-center">
-                {/* Content */}
-                <div className={index % 2 === 1 ? 'lg:order-2' : ''}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                      system.color === 'gold' ? 'bg-gold/20' :
-                      system.color === 'teal' ? 'bg-teal/20' :
-                      'bg-success/20'
-                    }`}>
-                      <system.icon className={`w-6 h-6 ${
-                        system.color === 'gold' ? 'text-gold' :
-                        system.color === 'teal' ? 'text-teal' :
-                        'text-success'
-                      }`} />
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-display font-bold text-foreground">{system.title}</h3>
-                      <span className="text-sm text-muted-foreground">{system.subtitle}</span>
-                    </div>
-                  </div>
-
-                  <p className="text-muted-foreground mb-6">
-                    {system.description}
-                  </p>
-
-                  <ul className="space-y-2 mb-8">
-                    {system.features.map((feature) => (
-                      <li key={feature} className="flex items-center gap-3 text-foreground">
-                        <span className={`w-1.5 h-1.5 rounded-full ${
-                          system.color === 'gold' ? 'bg-gold' :
-                          system.color === 'teal' ? 'bg-teal' :
-                          'bg-success'
-                        }`} />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <Button 
-                    variant={system.color === 'gold' ? 'hero' : system.color === 'teal' ? 'teal' : 'default'}
-                    className="gap-2"
-                    asChild
-                  >
-                    <Link href={system.link}>
-                      Inspect {system.title}
-                      <ArrowRight className="w-4 h-4" />
-                    </Link>
-                  </Button>
-                </div>
-
-                {/* Image + Metrics */}
-                <div className={`space-y-4 ${index % 2 === 1 ? 'lg:order-1' : ''}`}>
-                  {/* System Preview Image */}
-                  <div className="relative rounded-xl overflow-hidden border border-border/50">
-                    <img 
-                      src={system.image} 
-                      alt={`${system.title} preview`}
-                      className="w-full h-48 object-cover opacity-80"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent" />
-                  </div>
-                  
-                  {/* Metrics */}
-                  <div className="grid grid-cols-3 gap-3">
-                    {system.metrics.map((metric) => (
-                      <div 
-                        key={metric.label}
-                        className="bg-background/50 rounded-xl p-4 text-center border border-border/50"
-                      >
-                        <div className={`text-2xl font-mono font-bold ${
-                          system.color === 'gold' ? 'text-gold' :
-                          system.color === 'teal' ? 'text-teal' :
-                          'text-success'
-                        }`}>
-                          <AnimatedCounter 
-                            end={metric.value} 
-                            suffix={metric.suffix || ''} 
-                            decimals={metric.decimals || 0}
-                          />
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-1">{metric.label}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
+            <SystemCard key={system.id} system={system} index={index} />
           ))}
         </div>
       </div>
