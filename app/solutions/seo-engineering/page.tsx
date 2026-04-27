@@ -93,12 +93,10 @@ export default function SeoEngineeringPage() {
 
   return (
     <>
-      <head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
-        />
-      </head>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
+      />
       <div className="min-h-screen bg-background pt-24 pb-16">
       <div className="container-lg">
         <div className="max-w-4xl">

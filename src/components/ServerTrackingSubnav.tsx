@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { serverTrackingPages } from '@/data/serverTrackingPages';
@@ -10,7 +12,7 @@ export const ServerTrackingSubnav = () => {
       <div className="container-lg py-3">
         <div className="flex gap-2 overflow-x-auto">
           <Link
-            to="/solutions/server-side-tracking"
+            href="/solutions/server-side-tracking"
             className={`whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
               pathname === '/solutions/server-side-tracking'
                 ? 'border-gold/50 bg-gold/15 text-gold'
@@ -25,7 +27,7 @@ export const ServerTrackingSubnav = () => {
             return (
               <Link
                 key={item.slug}
-                to={href}
+                href={href}
                 className={`whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
                   active
                     ? 'border-gold/50 bg-gold/15 text-gold'

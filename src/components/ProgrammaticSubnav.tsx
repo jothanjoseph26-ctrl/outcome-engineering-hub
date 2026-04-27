@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -32,7 +34,7 @@ export const ProgrammaticSubnav = () => {
             return (
               <Link
                 key={item.href}
-                to={item.href}
+                href={item.href}
                 className={`whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
                   active
                     ? 'border-gold/50 bg-gold/15 text-gold'
