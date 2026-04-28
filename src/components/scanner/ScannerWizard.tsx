@@ -179,6 +179,11 @@ export const ScannerWizard = ({ onScanStart }: ScannerWizardProps) => {
     setIsSubmitting(true);
 
     try {
+      // Check Supabase configuration
+      if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+        throw new Error('Scanner service is temporarily unavailable. Please try again later.');
+      }
+
       let website = answers.website.trim();
       if (!website.startsWith('http://') && !website.startsWith('https://')) {
         website = `https://${website}`;
@@ -192,33 +197,40 @@ export const ScannerWizard = ({ onScanStart }: ScannerWizardProps) => {
         throw new Error('Enter a valid email address.');
       }
 
-      const { data, error } = await supabase
-        .from('scans')
-        .insert({
-          website,
-          answers: {
-            goal: answers.goal,
-            businessType: answers.businessType,
-            budget: answers.budget,
-            channels: answers.channels,
-            problem: answers.problem,
-          },
-          contact_name: answers.contactName,
-          contact_email: answers.contactEmail,
-          status: 'pending',
-          progress: 0,
-        })
-        .select('id')
-        .single();
+      // Client-generated id so we can skip .select() after insert. PostgREST's INSERT…RETURNING
+      // must pass SELECT RLS; rows have no public_token until start-scan runs, so returning id
+      // would fail under "Allow scan retrieval by token" even when the insert is valid.
+      const scanId = crypto.randomUUID();
 
-      if (error) throw error;
+      const { error } = await supabase.from('scans').insert({
+        id: scanId,
+        website,
+        answers: {
+          goal: answers.goal,
+          businessType: answers.businessType,
+          budget: answers.budget,
+          channels: answers.channels,
+          problem: answers.problem,
+        },
+        contact_name: answers.contactName,
+        contact_email: answers.contactEmail,
+        status: 'pending',
+        progress: 0,
+      });
+
+      if (error) {
+        // Convert Supabase error object to proper Error instance
+        const message = error.message || error.details || error.hint || JSON.stringify(error);
+        throw new Error(`Database error: ${message}`);
+      }
 
       const { data: scanStartData, error: scanError } = await supabase.functions.invoke('start-scan', {
-        body: { scanId: data.id },
+        body: { scanId },
       });
 
       if (scanError) {
-        throw scanError;
+        const message = scanError.message || scanError.details || JSON.stringify(scanError);
+        throw new Error(`Scan start failed: ${message}`);
       }
 
       const publicToken = scanStartData?.publicToken;
@@ -227,13 +239,22 @@ export const ScannerWizard = ({ onScanStart }: ScannerWizardProps) => {
         throw new Error('Scan started without a public token.');
       }
 
-      persistScannerSession({ scanId: data.id, publicToken });
-      onScanStart(data.id, publicToken);
+      persistScannerSession({ scanId, publicToken });
+      onScanStart(scanId, publicToken);
     } catch (error) {
-      console.error('Error creating scan:', error);
+      // Ensure we always have a proper Error instance with a message
+      const normalizedError = error instanceof Error
+        ? error
+        : new Error(
+            typeof error === 'string'
+              ? error
+              : `Unknown error occurred: ${JSON.stringify(error)}`
+          );
+
+      console.error('Error creating scan:', normalizedError.message, normalizedError);
       toast({
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to start scan. Please try again.',
+        description: normalizedError.message || 'Failed to start scan. Please try again.',
         variant: 'destructive',
       });
     } finally {

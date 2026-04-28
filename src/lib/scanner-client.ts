@@ -64,7 +64,12 @@ export const fetchScannerStatus = async (scanId: string, publicToken: string) =>
     .single();
 
   if (error) {
-    throw error;
+    const message = error.message || error.details || error.hint || JSON.stringify(error);
+    throw new Error(`Failed to fetch scan status: ${message}`);
+  }
+
+  if (!data) {
+    throw new Error('Scan not found.');
   }
 
   return data as ScannerStatusRecord;
@@ -79,7 +84,12 @@ export const fetchScannerResults = async (scanId: string, publicToken: string) =
     .single();
 
   if (error) {
-    throw error;
+    const message = error.message || error.details || error.hint || JSON.stringify(error);
+    throw new Error(`Failed to fetch scan results: ${message}`);
+  }
+
+  if (!data) {
+    throw new Error('Scan results not found.');
   }
 
   return data as ScannerResultRecord;

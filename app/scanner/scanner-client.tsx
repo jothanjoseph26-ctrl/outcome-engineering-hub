@@ -1,72 +1,48 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { ScannerWizard } from '@/components/scanner/ScannerWizard';
+import { ScannerProgress } from '@/components/scanner/ScannerProgress';
+import { ScannerResults } from '@/components/scanner/ScannerResults';
+
+type ScannerPhase = 'wizard' | 'progress' | 'results';
 
 export function ScannerClient() {
-  const [url, setUrl] = useState('');
-  const [scanning, setScanning] = useState(false);
+  const [phase, setPhase] = useState<ScannerPhase>('wizard');
+  const [scanId, setScanId] = useState<string | null>(null);
+  const [publicToken, setPublicToken] = useState<string | null>(null);
 
-  const handleScan = () => {
-    if (!url) return;
-    setScanning(true);
-    setTimeout(() => setScanning(false), 2000);
-  };
+  const handleScanStart = useCallback((id: string, token: string) => {
+    setScanId(id);
+    setPublicToken(token);
+    setPhase('progress');
+  }, []);
+
+  const handleProgressComplete = useCallback(() => {
+    setPhase('results');
+  }, []);
+
+  const handleRestart = useCallback(() => {
+    setScanId(null);
+    setPublicToken(null);
+    setPhase('wizard');
+  }, []);
 
   return (
     <div className="min-h-screen bg-background pt-24 pb-16">
       <div className="container-lg">
-        <div className="max-w-3xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6 text-gradient-gold">
-            Free SEO Scanner
-          </h1>
-          <p className="text-xl text-muted-foreground mb-12">
-            Enter your website URL to get an instant analysis of your SEO performance 
-            and discover opportunities to grow your organic traffic.
-          </p>
-
-          <div className="glass-card p-8 rounded-xl mb-12">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <input
-                type="url"
-                placeholder="https://yourwebsite.com"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                className="flex-1 px-6 py-4 rounded-lg bg-background border border-border 
-                  text-foreground placeholder:text-muted-foreground focus:outline-none 
-                  focus:ring-2 focus:ring-gold"
-              />
-              <button
-                onClick={handleScan}
-                disabled={!url || scanning}
-                className="px-8 py-4 bg-gradient-gold text-black font-bold rounded-lg 
-                  hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {scanning ? 'Scanning...' : 'Scan Now'}
-              </button>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6 text-left">
-            <div className="glass p-6 rounded-xl">
-              <h3 className="text-lg font-bold mb-3 text-gold">Technical SEO</h3>
-              <p className="text-muted-foreground text-sm">
-                Site speed, mobile optimization, crawlability, and indexability checks.
-              </p>
-            </div>
-            <div className="glass p-6 rounded-xl">
-              <h3 className="text-lg font-bold mb-3 text-teal">Content Analysis</h3>
-              <p className="text-muted-foreground text-sm">
-                Keyword targeting, content depth, and semantic relevance scoring.
-              </p>
-            </div>
-            <div className="glass p-6 rounded-xl">
-              <h3 className="text-lg font-bold mb-3 text-gold">Competitor Insights</h3>
-              <p className="text-muted-foreground text-sm">
-                Benchmark against competitors and identify gaps in your strategy.
-              </p>
-            </div>
-          </div>
-        </div>
+        {phase === 'wizard' && <ScannerWizard onScanStart={handleScanStart} />}
+        {phase === 'progress' && scanId && publicToken && (
+          <ScannerProgress
+            scanId={scanId}
+            publicToken={publicToken}
+            onComplete={handleProgressComplete}
+            onRestart={handleRestart}
+          />
+        )}
+        {phase === 'results' && scanId && publicToken && (
+          <ScannerResults scanId={scanId} publicToken={publicToken} onRestart={handleRestart} />
+        )}
       </div>
     </div>
   );

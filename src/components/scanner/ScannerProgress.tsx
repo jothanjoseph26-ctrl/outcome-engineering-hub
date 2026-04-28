@@ -137,11 +137,19 @@ export const ScannerProgress = ({ scanId, publicToken, onComplete, onRestart }: 
       });
 
       if (error) {
-        throw error;
+        const message = error.message || error.details || JSON.stringify(error);
+        throw new Error(`Retry failed: ${message}`);
       }
     } catch (error) {
       console.error('Error retrying scan:', error);
-      setPollError(error instanceof Error ? error.message : 'Retry failed. Please try again.');
+      const normalizedError = error instanceof Error
+        ? error
+        : new Error(
+            typeof error === 'string'
+              ? error
+              : `Unknown retry error: ${JSON.stringify(error)}`
+          );
+      setPollError(normalizedError.message || 'Retry failed. Please try again.');
     } finally {
       setIsRetrying(false);
     }
